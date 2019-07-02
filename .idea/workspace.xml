@@ -3,7 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="b7333798-a0b1-4713-ba94-8d3cdf68f97c" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hand_joint_mapping.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/hand_joint_mapping.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/serial_json_publisher_node.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/serial_json_publisher_node.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -16,11 +15,11 @@
     <splitter split-orientation="horizontal" split-proportion="0.47379032">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file pinned="false" current-in-tab="false">
+          <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/src/serial_json_publisher_node.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="2490">
-                  <caret line="174" selection-start-line="174" selection-end-line="174" />
+                <state relative-caret-position="600">
+                  <caret line="194" column="52" lean-forward="true" selection-start-line="194" selection-start-column="52" selection-end-line="194" selection-end-column="52" />
                   <folding>
                     <element signature="e#95#107#0" expanded="true" />
                   </folding>
@@ -31,20 +30,11 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/src/save_to_file.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="330">
-                  <caret line="75" selection-start-line="75" selection-end-line="75" />
+                <state relative-caret-position="795">
+                  <caret line="67" column="35" selection-start-line="67" selection-start-column="35" selection-end-line="67" selection-end-column="35" />
                   <folding>
                     <element signature="e#22#34#0" expanded="true" />
                   </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file pinned="false" current-in-tab="true">
-            <entry file="file:///media/moe/DATADRIVE1/BRL_Proj_Moe/Hand_Track/NDI_Files/capisample/CAPIsample/src/main.cpp">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="1210">
-                  <caret line="512" lean-forward="true" selection-start-line="512" selection-end-line="512" />
                 </state>
               </provider>
             </entry>
@@ -95,8 +85,8 @@
       <list>
         <option value="$PROJECT_DIR$/src/serial_publisher_node.py" />
         <option value="$PROJECT_DIR$/src/hand_joint_mapping.py" />
-        <option value="$PROJECT_DIR$/src/serial_json_publisher_node.py" />
         <option value="$PROJECT_DIR$/src/save_to_file.py" />
+        <option value="$PROJECT_DIR$/src/serial_json_publisher_node.py" />
       </list>
     </option>
   </component>
@@ -209,12 +199,13 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/serial_json_publisher_node.py">
+    <entry file="file:///media/moe/DATADRIVE1/BRL_Proj_Moe/Hand_Track/NDI_Files/capisample/CAPIsample/src/main.cpp" />
+    <entry file="file://$PROJECT_DIR$/src/save_to_file.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2490">
-          <caret line="174" selection-start-line="174" selection-end-line="174" />
+        <state relative-caret-position="795">
+          <caret line="67" column="35" selection-start-line="67" selection-start-column="35" selection-end-line="67" selection-end-column="35" />
           <folding>
-            <element signature="e#95#107#0" expanded="true" />
+            <element signature="e#22#34#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -243,20 +234,13 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/save_to_file.py">
+    <entry file="file://$PROJECT_DIR$/src/serial_json_publisher_node.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="330">
-          <caret line="75" selection-start-line="75" selection-end-line="75" />
+        <state relative-caret-position="600">
+          <caret line="194" column="52" lean-forward="true" selection-start-line="194" selection-start-column="52" selection-end-line="194" selection-end-column="52" />
           <folding>
-            <element signature="e#22#34#0" expanded="true" />
+            <element signature="e#95#107#0" expanded="true" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///media/moe/DATADRIVE1/BRL_Proj_Moe/Hand_Track/NDI_Files/capisample/CAPIsample/src/main.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1210">
-          <caret line="512" lean-forward="true" selection-start-line="512" selection-end-line="512" />
         </state>
       </provider>
     </entry>
