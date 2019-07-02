@@ -8,6 +8,7 @@ import serial
 from geometry_msgs.msg import Point
 from geometry_msgs.msg import Pose
 from geometry_msgs.msg import PoseArray
+from std_msgs.msg import Float64
 from std_msgs.msg import Header
 import json
 ser = serial.Serial('/dev/ttyACM0', 115200, timeout=10)		#ttyUSB0
@@ -44,8 +45,9 @@ def talker():
 	pub_S9 = rospy.Publisher('/imu_S9', Point, queue_size=1)
 	pub_S10= rospy.Publisher('/imu_S10', Point, queue_size=1)
 	pub_S11 = rospy.Publisher('/imu_S11', Point, queue_size=1)
-	pub_S12 = rospy.Publisher('/imu_S12', Point, queue_size=1)
-	pub_S13 = rospy.Publisher('/imu_S13', Point, queue_size=1)
+	pub_SC = rospy.Publisher('/scale', Float64, queue_size=1)
+	# pub_S12 = rospy.Publisher('/imu_S12', Point, queue_size=1)
+	# pub_S13 = rospy.Publisher('/imu_S13', Point, queue_size=1)
 	pubArray = rospy.Publisher('/imu_pub_array', PoseArray, queue_size=1)
 	rospy.init_node('talker', anonymous=True)
 	rate = rospy.Rate(1000) # 10hz
@@ -72,7 +74,8 @@ def talker():
 		if len(line)>13:
 			dataj = json.loads(line)
 			# print(dataj)
-			# print(dataj['S0'])
+			# print("SC:")
+			# print(dataj['SC'][0])
 
 			Sensor_pose0 = Pose()
 			Sensor_pose0.position.x = float(dataj['S0'][0]) / 10
@@ -134,6 +137,9 @@ def talker():
 			Sensor_pose11.position.y = float(dataj['S11'][1]) / 10
 			Sensor_pose11.position.z = float(dataj['S11'][2]) / 10
 
+			Sensor_poseSC = Pose()
+			Sensor_poseSC.position.x = float(dataj['SC'][0]) / 10
+
 			pub_S0.publish(Sensor_pose0.position)
 			pub_S1.publish(Sensor_pose1.position)
 			pub_S2.publish(Sensor_pose2.position)
@@ -147,6 +153,24 @@ def talker():
 			pub_S10.publish(Sensor_pose10.position)
 			pub_S11.publish(Sensor_pose11.position)
 
+			lst[0] =Sensor_pose0
+			lst[1] =Sensor_pose1
+			lst[2] =Sensor_pose2
+			lst[3] =Sensor_pose3
+			lst[4] =Sensor_pose4
+			lst[5] =Sensor_pose5
+			lst[6] =Sensor_pose6
+			lst[7] =Sensor_pose7
+			lst[8] =Sensor_pose8
+			lst[9] =Sensor_pose9
+			lst[10] =Sensor_pose10
+			lst[11] =Sensor_pose11
+			lst[12] =Sensor_poseSC
+
+			scale_data=Float64()
+			scale_data=float(dataj['SC'][0])
+			pub_SC.publish(scale_data)
+
 			
 
 
@@ -159,78 +183,13 @@ def talker():
 
 		# print("ch0:".format(hex(ord(line[1]))))
 
-		# TODO check length first
-		# if len(line)>13:
-		#
-		# 	S0AZ = lowbyte_highbyte_to_float(line[1], line[2])
-		# 	S0AY = lowbyte_highbyte_to_float(line[3], line[4])
-		# 	S0AX = lowbyte_highbyte_to_float(line[5], line[6])
-		# 	S0BZ = lowbyte_highbyte_to_float(line[7], line[8])
-		# 	S0BY = lowbyte_highbyte_to_float(line[9], line[10])
-		# 	S0BX = lowbyte_highbyte_to_float(line[11], line[12])
+
 		# 	# print("S0AX: {}, Y: {} ,Z: {}; S0BX: {}, Y:{}, Z:{}".format(S0AX,S0AY,S0AZ,S0BX,S0BY,S0BZ))
 
-
-			# Sensor_poseB = Pose()
-			# Sensor_poseB.position.x = float(S0BX) / 10
-			# Sensor_poseB.position.y = float(S0BY) / 10
-		# 	Sensor_poseB.position.z = float(S0BZ) / 10
-		#
-		# 	# sensorA_point=Point()
-		# 	# sensorA_point.x =float(S0AX)/10
-		# 	# sensorA_point.y =float(S0AY)/10
-		# 	# sensorA_point.z =float(S0AZ)/10
-		# 	# pub.publish(sensorA_point)
-		#
-		# 	if ord(line[0])==176:
-		# 		# print("rawdata:".format(line))
-		# 		rospy.loginfo(line)
-		# 	elif ord(line[0])==160:
-		# 		lst[0] = Sensor_poseA
-		# 		lst[1] = Sensor_poseB
-		# 		pub_S0.publish(Sensor_poseA.position)
-		# 		pub_S1.publish(Sensor_poseB.position)
-		# 	elif ord(line[0])==161:
-		# 		lst[2] = Sensor_poseA
-		# 		lst[3] = Sensor_poseB
-		# 		pub_S2.publish(Sensor_poseA.position)
-		# 		pub_S3.publish(Sensor_poseB.position)
-		# 	elif ord(line[0]) == 162:
-		# 		lst[4] = Sensor_poseA
-		# 		lst[5] = Sensor_poseB
-		# 		pub_S4.publish(Sensor_poseA.position)
-		# 		pub_S5.publish(Sensor_poseB.position)
-		# 	elif ord(line[0]) == 163:
-		# 		lst[6] = Sensor_poseA
-		# 		lst[7] = Sensor_poseB
-		# 		pub_S6.publish(Sensor_poseA.position)
-		# 		pub_S7.publish(Sensor_poseB.position)
-		# 	elif ord(line[0]) == 164:
-		# 		lst[8] = Sensor_poseA
-		# 		lst[9] = Sensor_poseB
-		# 		pub_S8.publish(Sensor_poseA.position)
-		# 		pub_S9.publish(Sensor_poseB.position)
-		# 	elif ord(line[0]) == 165:
-		# 		lst[10] = Sensor_poseA
-		# 		lst[11] = Sensor_poseB
-		# 		pub_S10.publish(Sensor_poseA.position)
-		# 		pub_S11.publish(Sensor_poseB.position)
-		# 	elif ord(line[0]) == 166:
-		# 		lst[12] = Sensor_poseA
-		# 		lst[13] = Sensor_poseB
-		# 		pub_S12.publish(Sensor_poseA.position)
-		# 		pub_S13.publish(Sensor_poseB.position)
-		#
-		# 	# else :
-		# 	# 	line_index=ord(line[0])-160
-		# 	# 	print("line index:{}".format(line_index))
-		# 	# 	lst[line_index]=Sensor_pose
-		#
-		# 	# myheader.stamp=
-		# 	imu_array.header.stamp=rospy.get_rostime()
-		# 	imu_array.header.frame_id='/world'
-		# 	imu_array.poses=lst
-		# 	pubArray.publish(imu_array)
+			imu_array.header.stamp=rospy.get_rostime()
+			imu_array.header.frame_id='/world'
+			imu_array.poses=lst
+			pubArray.publish(imu_array)
 		rate.sleep()
 
 if __name__ == '__main__':
