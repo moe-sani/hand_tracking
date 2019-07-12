@@ -29,22 +29,31 @@ def conv_data(data):
     return output
 
 
-def imu_serial_callback(data):
+def callback(imu_sub, box_sub, tool_sub, wrist_sub):
     rospy.loginfo("Saveing Data ...")
 
-    S0 = conv_data(data.poses[0])
-    S1 = conv_data(data.poses[1])
-    S2 = conv_data(data.poses[2])
-    S3 = conv_data(data.poses[3])
-    S4 = conv_data(data.poses[4])
-    S5 = conv_data(data.poses[5])
-    S6 = conv_data(data.poses[6])
-    S7 = conv_data(data.poses[7])
-    S8 = conv_data(data.poses[8])
-    S9 = conv_data(data.poses[9])
-    S10 = conv_data(data.poses[10])
-    S11 = conv_data(data.poses[11])
-    SC = conv_data(data.poses[12])
+    print("imu_sub:".format(imu_sub))
+    print("tool_sub:".format(tool_sub))
+
+
+
+
+
+    S0 = conv_data(imu_sub.poses[0])
+    S1 = conv_data(imu_sub.poses[1])
+    S2 = conv_data(imu_sub.poses[2])
+    S3 = conv_data(imu_sub.poses[3])
+    S4 = conv_data(imu_sub.poses[4])
+    S5 = conv_data(imu_sub.poses[5])
+    S6 = conv_data(imu_sub.poses[6])
+    S7 = conv_data(imu_sub.poses[7])
+    S8 = conv_data(imu_sub.poses[8])
+    S9 = conv_data(imu_sub.poses[9])
+    S10 = conv_data(imu_sub.poses[10])
+    S11 = conv_data(imu_sub.poses[11])
+    SC = conv_data(imu_sub.poses[12])
+
+
 
 
     seconds = rospy.get_time()
@@ -78,16 +87,21 @@ def imu_serial_callback(data):
 
 
 def main():
-	global str_filename
+    global str_filename
 
-	rospy.init_node('smartsurg_savedata', anonymous=True)
-	rospy.loginfo("---WELCOME TO Save to file---")
-	rospy.Subscriber("/imu_pub_array", PoseArray, imu_serial_callback, queue_size=10)
+    rospy.init_node('smartsurg_savedata', anonymous=True)
+    rospy.loginfo("---WELCOME TO Save to file---")
+    # rospy.Subscriber("/imu_pub_array", PoseArray, imu_serial_callback, queue_size=10)
+    imu_sub=message_filters.Subscriber('/imu_pub_array', PoseArray)
+    box_sub=message_filters.Subscriber('/ndi/Box/position_cartesian_current', PoseStamped)
+    tool_sub=message_filters.Subscriber('/ndi/Tool/position_cartesian_current', PoseStamped)
+    wrist_sub=message_filters.Subscriber('/ndi/Wrist/position_cartesian_current', PoseStamped)
 
+    ts = message_filters.TimeSynchronizer([imu_sub, box_sub, tool_sub, wrist_sub], 10)
+    ts.registerCallback(callback)
 
-
-	f = open(str_filename, "a+")
-	f.write('seconds,SC.x,'
+    f = open(str_filename, "a+")
+    f.write('seconds,SC.x,'
                     'S0.x,S0.y,S0.z,'
                     'S1.x,S1.y,S1.z,'
                     'S2.x,S2.y,S2.z,'
@@ -101,12 +115,13 @@ def main():
                     'S10.x,S10.y,S10.z,'
                     'S11.x,S11.y,S11.z,\r\n')
 
-	# print('seconds,robot_x,robot_y,robot_z,landmark_count,source_az,source_el,source_sim_az,source_sim_el,covar_mat1_det,covar_mat1l_det,covar_mat2_det,covar_mat2l_det,ss_pos_x,ss_pos_y,ss_pos_z,\r\n')
-	f.close()
+    # print('seconds,robot_x,robot_y,robot_z,landmark_count,source_az,source_el,source_sim_az,source_sim_el,covar_mat1_det,covar_mat1l_det,covar_mat2_det,covar_mat2l_det,ss_pos_x,ss_pos_y,ss_pos_z,\r\n')
+    f.close()
 
-	# save_to_csv(f)
+    # save_to_csv(f)
 
-	rospy.spin()
+    rospy.spin()
 
 if __name__ == '__main__':
-	main()
+    main()
+
