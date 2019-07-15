@@ -6,7 +6,7 @@ from odas_msgs.msg import Odas, OdasList
 from geometry_msgs.msg import Point
 from geometry_msgs.msg import PoseArray
 from std_msgs.msg import Float64
-
+from hand_tracking.msg import Float64ArrayStamped
 from geometry_msgs.msg import TwistStamped
 import numpy
 
@@ -23,41 +23,47 @@ pub_rh_thj1=0
 pub_rh_thj2=0
 pub_rh_thj3=0
 pub_rh_thj4=0
+pub_rh_thj5=0
 pub_rh_wrj1=0
 pub_rh_wrj2=0
 
 calibration_counter=0
 
+ffj1_buff=[]
+ffj2_buff=[]
+ffj3_buff=[]
+ffj4_buff=[]
+mfj1_buff=[]
+mfj2_buff=[]
+mfj3_buff=[]
+mfj4_buff=[]
+thj1_buff=[]
+thj2_buff=[]
+thj3_buff=[]
+thj4_buff=[]
+thj5_buff=[]
+wrj1_buff=[]
+wrj2_buff=[]
+Tool_status_buff=[]
+ffj1_offset=0
+ffj2_offset=0
+ffj3_offset=0
+ffj4_offset=0
+mfj1_offset=0
+mfj2_offset=0
+mfj3_offset=0
+mfj4_offset=0
+thj1_offset=0
+thj2_offset=0
+thj3_offset=0
+thj4_offset=0
+thj5_offset=0
+wrj1_offset=0
+wrj2_offset=0
+Tool_status_offset=0
 
-Index_DIP_fl_buff=[]
-Index_PIP_fl_buff=[]
-Index_MIP_fl_buff=[]
-Index_MIP_ab_buff=[]
-Middle_DIP_fl_buff=[]
-Middle_PIP_fl_buff=[]
-Middle_MIP_fl_buff=[]
-Middle_MIP_ab_buff=[]
-Thumb_DIP_fl_buff=[]
-Thumb_MIP_fl_buff=[]
-Thumb_CMC_fl_buff=[]
-Thumb_CMC_ab_buff=[]
-Wrist_JOINT_fl_buff=[]
-Wrist_JOINT_ab_buff=[]
 
-Index_DIP_fl_offset=0
-Index_PIP_fl_offset=0
-Index_MIP_fl_offset=0
-Index_MIP_ab_offset=0
-Middle_DIP_fl_offset=0
-Middle_PIP_fl_offset=0
-Middle_MIP_fl_offset=0
-Middle_MIP_ab_offset=0
-Thumb_DIP_fl_offset=0
-Thumb_MIP_fl_offset=0
-Thumb_CMC_fl_offset=0
-Thumb_CMC_ab_offset=0
-Wrist_JOINT_fl_offset=0
-Wrist_JOINT_ab_offset=0
+lst=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 
 
 def calc_joints(data1,data2):
@@ -80,151 +86,192 @@ def imu_serial_callback(data):
     global pub_rh_thj2
     global pub_rh_thj3
     global pub_rh_thj4
+    global pub_rh_thj5
     global pub_rh_wrj1
     global pub_rh_wrj2
+    global pub_hand_joints_array
 
     global calibration_counter
 
-    global Index_DIP_fl_buff
-    global Index_PIP_fl_buff
-    global Index_MIP_fl_buff
-    global Index_MIP_ab_buff
-    global Middle_DIP_fl_buff
-    global Middle_PIP_fl_buff
-    global Middle_MIP_fl_buff
-    global Middle_MIP_ab_buff
-    global Thumb_DIP_fl_buff
-    global Thumb_MIP_fl_buff
-    global Thumb_CMC_fl_buff
-    global Thumb_CMC_ab_buff
-    global Wrist_JOINT_fl_buff
-    global Wrist_JOINT_ab_buff
+    global ffj1_buff
+    global ffj2_buff
+    global ffj3_buff
+    global ffj4_buff
+    global mfj1_buff
+    global mfj2_buff
+    global mfj3_buff
+    global mfj4_buff
+    global thj1_buff
+    global thj2_buff
+    global thj3_buff
+    global thj4_buff
+    global thj5_buff
+    global wrj1_buff
+    global wrj2_buff
+    global Tool_status_buff
 
-    global Index_DIP_fl_offset
-    global Index_PIP_fl_offset
-    global Index_MIP_fl_offset
-    global Index_MIP_ab_offset
-    global Middle_DIP_fl_offset
-    global Middle_PIP_fl_offset
-    global Middle_MIP_fl_offset
-    global Middle_MIP_ab_offset
-    global Thumb_DIP_fl_offset
-    global Thumb_MIP_fl_offset
-    global Thumb_CMC_fl_offset
-    global Thumb_CMC_ab_offset
-    global Wrist_JOINT_fl_offset
-    global Wrist_JOINT_ab_offset
+    global ffj1_offset
+    global ffj2_offset
+    global ffj3_offset
+    global ffj4_offset
+    global mfj1_offset
+    global mfj2_offset
+    global mfj3_offset
+    global mfj4_offset
+    global thj1_offset
+    global thj2_offset
+    global thj3_offset
+    global thj4_offset
+    global thj5_offset
+    global wrj1_offset
+    global wrj2_offset
+    global Tool_status_offset
 
     # for sensor_id, sensor_values in enumerate(data.poses):
     #     print("sensor{}:{}".format(sensor_id, sensor_values))
     rospy.loginfo("test")
-    # % Index                                           #full sensor model
-    Index_DIP = calc_joints(data.poses[0],data.poses[1])#3-2
-    Index_PIP = calc_joints(data.poses[0],data.poses[1])#2-8
-    Index_MIP = calc_joints(data.poses[7],data.poses[0])#8-7
 
-    Index_DIP_fl =Index_DIP.x
-    Index_PIP_fl =Index_PIP.x
-    Index_MIP_fl =Index_MIP.x
-    Index_MIP_ab =Index_MIP.z
-    print("Index_MIP:{}".format(Index_MIP))
+    #full sensor model
+    Index_DIP = calc_joints(data.poses[0],data.poses[1])
+    Index_PIP = calc_joints(data.poses[6],data.poses[0])
+    Index_MIP = calc_joints(data.poses[9],data.poses[6])
+    Middle_DIP = calc_joints(data.poses[3],data.poses[2])
+    Middle_PIP = calc_joints(data.poses[7],data.poses[3])
+    Middle_MIP = calc_joints(data.poses[9],data.poses[7])
+    Thumb_DIP = calc_joints(data.poses[5],data.poses[4])
+    Thumb_MIP = calc_joints(data.poses[11],data.poses[5])
+    Thumb_CMC = calc_joints(data.poses[10],data.poses[11])
+    Wrist_JOINT = calc_joints(data.poses[8],data.poses[9])
 
-    # % Middle
-    Middle_DIP = calc_joints(data.poses[3],data.poses[2])#5-4
-    Middle_PIP = calc_joints(data.poses[3],data.poses[2])#4-10
-    Middle_MIP = calc_joints(data.poses[7],data.poses[3])#10-7
+    ffj1=Index_DIP.x
+    ffj2=Index_PIP.x
+    ffj3=Index_MIP.x
+    ffj4=Index_MIP.z
+    mfj1=Middle_DIP.x
+    mfj2=Middle_PIP.x
+    mfj3=Middle_MIP.x
+    mfj4=Middle_MIP.z
+    thj1=Thumb_DIP.x
+    thj2=Thumb_MIP.x
+    thj3=Thumb_MIP.z
+    thj4=Thumb_CMC.z
+    thj5=Thumb_CMC.y
+    wrj1=Wrist_JOINT.x
+    wrj2=Wrist_JOINT.z
 
-    Middle_DIP_fl=Middle_DIP.x
-    Middle_PIP_fl=Middle_PIP.x
-    Middle_MIP_fl=Middle_MIP.x
-    Middle_MIP_ab=Middle_MIP.z
-    print("Middle_DIP:{}".format(Middle_DIP))
-    print("Middle_MIP:{}".format(Middle_MIP))
+    Tool_pose=data.poses[12]
+    Tool_status=Tool_pose.position.x
 
-    # % Thumb
-    Thumb_DIP = calc_joints(data.poses[5],data.poses[4])#1-0
-    Thumb_MIP = calc_joints(data.poses[5],data.poses[4])#0-7
-    Thumb_CMC = calc_joints(data.poses[7],data.poses[5])#7-6
+    # print("Index_MIP:{}".format(Index_MIP))
+    # print("Middle_DIP:{}".format(Middle_DIP))
+    # print("Middle_MIP:{}".format(Middle_MIP))
 
-    Thumb_DIP_fl = Thumb_DIP.x
-    Thumb_MIP_fl = Thumb_MIP.x
-    Thumb_CMC_fl = Thumb_CMC.x
-    Thumb_CMC_ab = Thumb_CMC.z
-
-    # % wrist
-    Wrist_JOINT = calc_joints(data.poses[6],data.poses[7])#9-10
-    Wrist_JOINT_fl=Wrist_JOINT.x
-    Wrist_JOINT_ab=Wrist_JOINT.z
 
 
     if calibration_counter<100:
-        Index_DIP_fl_buff.append(Index_DIP_fl)
-        Index_PIP_fl_buff.append(Index_PIP_fl)
-        Index_MIP_fl_buff.append(Index_MIP_fl)
-        Index_MIP_ab_buff.append(Index_MIP_ab)
 
-        Middle_DIP_fl_buff.append(Middle_DIP_fl)
-        Middle_PIP_fl_buff.append(Middle_PIP_fl)
-        Middle_MIP_fl_buff.append(Middle_MIP_fl)
-        Middle_MIP_ab_buff.append(Middle_MIP_ab)
+        ffj1_buff.append(ffj1)
+        ffj2_buff.append(ffj2)
+        ffj3_buff.append(ffj3)
+        ffj4_buff.append(ffj4)
+        mfj1_buff.append(mfj1)
+        mfj2_buff.append(mfj2)
+        mfj3_buff.append(mfj3)
+        mfj4_buff.append(mfj4)
+        thj1_buff.append(thj1)
+        thj2_buff.append(thj2)
+        thj3_buff.append(thj3)
+        thj4_buff.append(thj4)
+        thj5_buff.append(thj5)
+        wrj1_buff.append(wrj1)
+        wrj2_buff.append(wrj2)
+        Tool_status_buff.append(Tool_status)
 
-        Thumb_DIP_fl_buff.append(Thumb_DIP_fl)
-        Thumb_MIP_fl_buff.append(Thumb_MIP_fl)
-        Thumb_CMC_fl_buff.append(Thumb_CMC_fl)
-        Thumb_CMC_ab_buff.append(Thumb_CMC_ab)
+        ffj1_offset=numpy.mean(ffj1_buff)
+        ffj2_offset=numpy.mean(ffj2_buff)
+        ffj3_offset=numpy.mean(ffj3_buff)
+        ffj4_offset=numpy.mean(ffj4_buff)
+        mfj1_offset=numpy.mean(mfj1_buff)
+        mfj2_offset=numpy.mean(mfj2_buff)
+        mfj3_offset=numpy.mean(mfj3_buff)
+        mfj4_offset=numpy.mean(mfj4_buff)
+        thj1_offset=numpy.mean(thj1_buff)
+        thj2_offset=numpy.mean(thj2_buff)
+        thj3_offset=numpy.mean(thj3_buff)
+        thj4_offset=numpy.mean(thj4_buff)
+        thj5_offset=numpy.mean(thj5_buff)
+        wrj1_offset=numpy.mean(wrj1_buff)
+        wrj2_offset=numpy.mean(wrj2_buff)
+        Tool_status_offset=numpy.mean(Tool_status_buff)
 
-        Wrist_JOINT_fl_buff.append(Wrist_JOINT_fl)
-        Wrist_JOINT_ab_buff.append(Wrist_JOINT_ab)
-
-        Index_DIP_fl_offset=numpy.mean(Index_DIP_fl_buff)
-        Index_PIP_fl_offset=numpy.mean(Index_PIP_fl_buff)
-        Index_MIP_fl_offset=numpy.mean(Index_MIP_fl_buff)
-        Index_MIP_ab_offset=numpy.mean(Index_MIP_ab_buff)
-
-        Middle_DIP_fl_offset=numpy.mean(Middle_DIP_fl_buff)
-        Middle_PIP_fl_offset=numpy.mean(Middle_PIP_fl_buff)
-        Middle_MIP_fl_offset=numpy.mean(Middle_MIP_fl_buff)
-        Middle_MIP_ab_offset=numpy.mean(Middle_MIP_ab_buff)
-
-        Thumb_DIP_fl_offset=numpy.mean(Thumb_DIP_fl_buff)
-        Thumb_MIP_fl_offset=numpy.mean(Thumb_MIP_fl_buff)
-        Thumb_CMC_fl_offset=numpy.mean(Thumb_CMC_fl_buff)
-        Thumb_CMC_ab_offset=numpy.mean(Thumb_CMC_ab_buff)
-
-        Wrist_JOINT_fl_offset=numpy.mean(Wrist_JOINT_fl_buff)
-        Wrist_JOINT_ab_offset=numpy.mean(Wrist_JOINT_ab_buff)
 
         calibration_counter=calibration_counter+1
 
-
     else :
-        pub_rh_ffj0.publish(math.radians(Index_PIP_fl-Index_PIP_fl_offset))
-        pub_rh_ffj3.publish(math.radians(Index_MIP_fl-Index_MIP_fl_offset))
-        pub_rh_ffj4.publish(math.radians(Index_MIP_ab-Index_MIP_ab_offset))
-        print("Index_PIP_fl:{},Index_MIP_fl:{},Index_MIP_ab:{}".format(Index_PIP_fl,Index_MIP_fl,Index_MIP_ab))
+        # Publish all the final calibrated joint values
+        lst[0] =    ffj1-ffj1_offset
+        lst[1] =    ffj2-ffj2_offset
+        lst[2] =    ffj3-ffj3_offset
+        lst[3] =    ffj4-ffj4_offset
+        lst[4] =    mfj1-mfj1_offset
+        lst[5] =    mfj2-mfj2_offset
+        lst[6] =    mfj3-mfj3_offset
+        lst[7] =    mfj4-mfj4_offset
+        lst[8] =    thj1-thj1_offset
+        lst[9] =    thj2-thj2_offset
+        lst[10] =   thj3-thj3_offset
+        lst[11] =   thj4-thj4_offset
+        lst[12] =   thj5-thj5_offset
+        lst[13] =   wrj1-wrj1_offset
+        lst[14] =   wrj2-wrj2_offset
+        lst[15] =   Tool_status-Tool_status_offset
+
+        joints_array = Float64ArrayStamped()
+        joints_array.header.stamp = rospy.get_rostime()
+        joints_array.header.frame_id = '/world'
+        joints_array.data = lst
+        pub_hand_joints_array.publish(joints_array)
+
+
+
+        pub_rh_ffj0.publish(math.radians(ffj1-ffj1_offset))
+        pub_rh_ffj3.publish(math.radians(ffj3-ffj3_offset))
+        pub_rh_ffj4.publish(math.radians(ffj4-ffj4_offset))
+        pub_rh_mfj0.publish(math.radians(mfj1-mfj1_offset))
+        pub_rh_mfj3.publish(math.radians(mfj3-mfj3_offset))
+        pub_rh_mfj4.publish(math.radians(mfj4-mfj4_offset))
+        pub_rh_thj1.publish(math.radians(thj1-thj1_offset))
+        pub_rh_thj2.publish(math.radians(thj2-thj2_offset))
+        pub_rh_thj3.publish(math.radians(thj3-thj3_offset))
+        pub_rh_thj4.publish(math.radians(thj4-thj4_offset))
+        pub_rh_thj5.publish(math.radians(thj5-thj5_offset))
+        pub_rh_wrj1.publish(math.radians(wrj1-wrj1_offset))
+        pub_rh_wrj2.publish(math.radians(wrj2-wrj2_offset))
+
+
+        # print("Index_PIP_fl:{},Index_MIP_fl:{},Index_MIP_ab:{}".format(Index_PIP_fl,Index_MIP_fl,Index_MIP_ab))
         # print("Index_PIP_fl:{},Index_MIP_fl:{},Index_MIP_ab:{}".format(Index_PIP_fl-Index_PIP_fl_offset,
         #                                                                Index_MIP_fl-Index_MIP_fl_offset,
         #                                                                Index_MIP_ab-Index_MIP_ab_offset))
 
-        pub_rh_mfj0.publish(math.radians(Middle_PIP_fl - Middle_PIP_fl_offset))
-        pub_rh_mfj3.publish(math.radians(Middle_MIP_fl - Middle_MIP_fl_offset))
-        pub_rh_mfj4.publish(math.radians(Middle_MIP_ab - Middle_MIP_ab_offset))
-        print("Middle_PIP_fl:{},Middle_MIP_fl:{},Middle_MIP_ab:{}".format(Middle_PIP_fl, Middle_MIP_fl, Middle_MIP_ab))
+
+        # print("Middle_PIP_fl:{},Middle_MIP_fl:{},Middle_MIP_ab:{}".format(Middle_PIP_fl, Middle_MIP_fl, Middle_MIP_ab))
         # print("Middle_PIP_fl:{},Middle_MIP_fl:{},Middle_MIP_ab:{}".format(Middle_PIP_fl - Middle_PIP_fl_offset,
         #                                                                Middle_MIP_fl - Middle_MIP_fl_offset,
         #                                                                Middle_MIP_ab - Middle_MIP_ab_offset))
 
-        pub_rh_thj1.publish(math.radians(Thumb_DIP_fl - Thumb_DIP_fl_offset))
-        pub_rh_thj2.publish(math.radians(Thumb_MIP_fl - Thumb_MIP_fl_offset))
-        pub_rh_thj4.publish(math.radians(Thumb_CMC_ab - Thumb_CMC_ab_offset))
+
         # print("Thumb_PIP_fl:{},Thumb_MIP_fl:{},Thumb_MIP_ab:{}".format(Thumb_DIP_fl - Thumb_DIP_fl_offset,
         #                                                                Thumb_MIP_fl - Thumb_MIP_fl_offset,
         #                                                                Thumb_CMC_ab - Thumb_CMC_ab_offset))
 
-        pub_rh_wrj1.publish(math.radians(Wrist_JOINT_fl-Wrist_JOINT_fl_offset))
-        pub_rh_wrj2.publish(math.radians(Wrist_JOINT_ab-Wrist_JOINT_ab_offset))
+
         # print("Wrist_JOINT_fl_buff:{},Wrist_JOINT_ab_buff:{}".format(Wrist_JOINT_fl-Wrist_JOINT_fl_offset,
         #                                         Wrist_JOINT_ab-Wrist_JOINT_ab_offset))
+
+
+
+
 
 def main():
 
@@ -243,8 +290,14 @@ def main():
     global pub_rh_thj2
     global pub_rh_thj3
     global pub_rh_thj4
+    global pub_rh_thj5
     global pub_rh_wrj1
     global pub_rh_wrj2
+    global pub_hand_joints_array
+
+
+    pub_hand_joints_array=rospy.Publisher('/hand_joints_array',Float64ArrayStamped , queue_size=1)
+
 
 
     # listener = tf.TransformListener()
@@ -258,8 +311,10 @@ def main():
 
     pub_rh_thj1 = rospy.Publisher("/sh_rh_thj1_position_controller/command", Float64, queue_size=10) #thumb dip
     pub_rh_thj2 = rospy.Publisher("/sh_rh_thj2_position_controller/command", Float64, queue_size=10)#thumb mip
-    pub_rh_thj3 = rospy.Publisher("/sh_rh_thj3_position_controller/command", Float64, queue_size=10)#thumb cmc flex
+    pub_rh_thj3 = rospy.Publisher("/sh_rh_thj3_position_controller/command", Float64, queue_size=10)#thumb mip flex
     pub_rh_thj4 = rospy.Publisher("/sh_rh_thj4_position_controller/command", Float64, queue_size=10)#thumb cmc abd
+    pub_rh_thj5 = rospy.Publisher("/sh_rh_thj5_position_controller/command", Float64, queue_size=10)#cmc turning around it self!
+    # the final one seems tricky a bit. needs to be studied in realtime.
 
     pub_rh_wrj1 = rospy.Publisher("/sh_rh_wrj1_position_controller/command", Float64, queue_size=10) #wrist flex
     pub_rh_wrj2 = rospy.Publisher("/sh_rh_wrj2_position_controller/command", Float64, queue_size=10)#wrist abd
@@ -273,16 +328,20 @@ if __name__ == '__main__':
 
 
 # shadow robot's joint limits:
-# sh_rh_ffj0=  0 > 180
-# sh_rh_ffj3=  0 > 90
-# sh_rh_ffj4= -20 > 20
+# sh_rh_ffj0=  0 > 180      : 0 means open
+# sh_rh_ffj3=  0 > 90       : 0 means open straight
+# sh_rh_ffj4= -20 > 20      : 0 means open stright
+
 # sh_rh_mfj0= 0 > 180
 # sh_rh_mfj3= 0 > 90
 # sh_rh_mfj4= -20 > 20
-# sh_rh_thj1=  0 > 90
-# sh_rh_thj2=  -40 > 40
-# sh_rh_thj3=  -12 > 12
+
+
+# sh_rh_thj1=  0 > 90       :0 mens open straght
+# sh_rh_thj2=  -40 > 40     : 0 means open straight
+# sh_rh_thj3=  -12 > 12     : 0 means straight
 # sh_rh_thj4= 0 > 70
 # sh_rh_thj5= -60 > 60
+
 # sh_rh_wrj1=  -40 > 28
 # sh_rh_wrj2=  -30 > 10

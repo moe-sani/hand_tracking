@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>serial_publisher</name>
+  <name>hand_tracking</name>
   <version>0.0.0</version>
-  <description>The serial_publisher package</description>
+  <description>The hand_tracking package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
