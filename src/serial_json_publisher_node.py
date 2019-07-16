@@ -73,9 +73,9 @@ def talker():
 			# print("SC:")
 			# print(dataj['SC'][0])
 			Sensor_pose0 = Pose()
-			Sensor_pose0.orientation.x = float(dataj['S0'][0]) / 10
-			Sensor_pose0.orientation.y = float(dataj['S0'][1]) / 10
-			Sensor_pose0.orientation.z = float(dataj['S0'][2]) / 10
+			Sensor_pose0.position.x = float(dataj['S0'][0]) / 10
+			Sensor_pose0.position.y = float(dataj['S0'][1]) / 10
+			Sensor_pose0.position.z = float(dataj['S0'][2]) / 10
 			Sensor_posest0=PoseStamped()
 			Sensor_posest0.pose=Sensor_pose0
 			Sensor_posest0.header.stamp = rospy.get_rostime()
@@ -84,99 +84,100 @@ def talker():
 
 
 			Sensor_pose1 = Pose()
-			Sensor_pose1.orientation.x = float(dataj['S1'][0]) / 10
-			Sensor_pose1.orientation.y = float(dataj['S1'][1]) / 10
-			Sensor_pose1.orientation.z = float(dataj['S1'][2]) / 10
+			# TODO: change all to orientations
+			Sensor_pose1.position.x = float(dataj['S1'][0]) / 10
+			Sensor_pose1.position.y = float(dataj['S1'][1]) / 10
+			Sensor_pose1.position.z = float(dataj['S1'][2]) / 10
 			Sensor_posest1=PoseStamped()
 			Sensor_posest1.pose=Sensor_pose1
 			Sensor_posest1.header.stamp = rospy.get_rostime()
 			Sensor_posest1.header.frame_id = '/world'
 
 			Sensor_pose2 = Pose()
-			Sensor_pose2.orientation.x = float(dataj['S2'][0]) / 10
-			Sensor_pose2.orientation.y = float(dataj['S2'][1]) / 10
-			Sensor_pose2.orientation.z = float(dataj['S2'][2]) / 10
+			Sensor_pose2.position.x = float(dataj['S2'][0]) / 10
+			Sensor_pose2.position.y = float(dataj['S2'][1]) / 10
+			Sensor_pose2.position.z = float(dataj['S2'][2]) / 10
 			Sensor_posest2=PoseStamped()
 			Sensor_posest2.pose=Sensor_pose2
 			Sensor_posest2.header.stamp = rospy.get_rostime()
 			Sensor_posest2.header.frame_id = '/world'
 
 			Sensor_pose3 = Pose()
-			Sensor_pose3.orientation.x = float(dataj['S3'][0]) / 10
-			Sensor_pose3.orientation.y = float(dataj['S3'][1]) / 10
-			Sensor_pose3.orientation.z = float(dataj['S3'][2]) / 10
+			Sensor_pose3.position.x = float(dataj['S3'][0]) / 10
+			Sensor_pose3.position.y = float(dataj['S3'][1]) / 10
+			Sensor_pose3.position.z = float(dataj['S3'][2]) / 10
 			Sensor_posest3=PoseStamped()
 			Sensor_posest3.pose=Sensor_pose3
 			Sensor_posest3.header.stamp = rospy.get_rostime()
 			Sensor_posest3.header.frame_id = '/world'
 
 			Sensor_pose4 = Pose()
-			Sensor_pose4.orientation.x = float(dataj['S4'][0]) / 10
-			Sensor_pose4.orientation.y = float(dataj['S4'][1]) / 10
-			Sensor_pose4.orientation.z = float(dataj['S4'][2]) / 10
+			Sensor_pose4.position.x = float(dataj['S4'][0]) / 10
+			Sensor_pose4.position.y = float(dataj['S4'][1]) / 10
+			Sensor_pose4.position.z = float(dataj['S4'][2]) / 10
 			Sensor_posest4=PoseStamped()
 			Sensor_posest4.pose=Sensor_pose4
 			Sensor_posest4.header.stamp = rospy.get_rostime()
 			Sensor_posest4.header.frame_id = '/world'
 
 			Sensor_pose5 = Pose()
-			Sensor_pose5.orientation.x = float(dataj['S5'][0]) / 10
-			Sensor_pose5.orientation.y = float(dataj['S5'][1]) / 10
-			Sensor_pose5.orientation.z = float(dataj['S5'][2]) / 10
+			Sensor_pose5.position.x = float(dataj['S5'][0]) / 10
+			Sensor_pose5.position.y = float(dataj['S5'][1]) / 10
+			Sensor_pose5.position.z = float(dataj['S5'][2]) / 10
 			Sensor_posest5=PoseStamped()
 			Sensor_posest5.pose=Sensor_pose5
 			Sensor_posest5.header.stamp = rospy.get_rostime()
 			Sensor_posest5.header.frame_id = '/world'
 
 			Sensor_pose6 = Pose()
-			Sensor_pose6.orientation.x = float(dataj['S6'][0]) / 10
-			Sensor_pose6.orientation.y = float(dataj['S6'][1]) / 10
-			Sensor_pose6.orientation.z = float(dataj['S6'][2]) / 10
+			Sensor_pose6.position.x = float(dataj['S6'][0]) / 10
+			Sensor_pose6.position.y = float(dataj['S6'][1]) / 10
+			Sensor_pose6.position.z = float(dataj['S6'][2]) / 10
 			Sensor_posest6=PoseStamped()
 			Sensor_posest6.pose=Sensor_pose6
 			Sensor_posest6.header.stamp = rospy.get_rostime()
 			Sensor_posest6.header.frame_id = '/world'
 
 			Sensor_pose7 = Pose()
-			Sensor_pose7.orientation.x = float(dataj['S7'][0]) / 10
-			Sensor_pose7.orientation.y = float(dataj['S7'][1]) / 10
-			Sensor_pose7.orientation.z = float(dataj['S7'][2]) / 10
+			Sensor_pose7.position.x = float(dataj['S7'][0]) / 10
+			Sensor_pose7.position.y = float(dataj['S7'][1]) / 10
+			Sensor_pose7.position.z = float(dataj['S7'][2]) / 10
 			Sensor_posest7=PoseStamped()
 			Sensor_posest7.pose=Sensor_pose7
 			Sensor_posest7.header.stamp = rospy.get_rostime()
 			Sensor_posest7.header.frame_id = '/world'
 
 			Sensor_pose8 = Pose()
-			Sensor_pose8.orientation.x = float(dataj['S8'][0]) / 10
-			Sensor_pose8.orientation.y = float(dataj['S8'][1]) / 10
-			Sensor_pose8.orientation.z = float(dataj['S8'][2]) / 10
+			Sensor_pose8.position.x = float(dataj['S8'][0]) / 10
+			Sensor_pose8.position.y = float(dataj['S8'][1]) / 10
+			Sensor_pose8.position.z = float(dataj['S8'][2]) / 10
 			Sensor_posest8=PoseStamped()
 			Sensor_posest8.pose=Sensor_pose8
 			Sensor_posest8.header.stamp = rospy.get_rostime()
 			Sensor_posest8.header.frame_id = '/world'
 
 			Sensor_pose9 = Pose()
-			Sensor_pose9.orientation.x = float(dataj['S9'][0]) / 10
-			Sensor_pose9.orientation.y = float(dataj['S9'][1]) / 10
-			Sensor_pose9.orientation.z = float(dataj['S9'][2]) / 10
+			Sensor_pose9.position.x = float(dataj['S9'][0]) / 10
+			Sensor_pose9.position.y = float(dataj['S9'][1]) / 10
+			Sensor_pose9.position.z = float(dataj['S9'][2]) / 10
 			Sensor_posest9=PoseStamped()
 			Sensor_posest9.pose=Sensor_pose9
 			Sensor_posest9.header.stamp = rospy.get_rostime()
 			Sensor_posest9.header.frame_id = '/world'
 
 			Sensor_pose10 = Pose()
-			Sensor_pose10.orientation.x = float(dataj['S10'][0]) / 10
-			Sensor_pose10.orientation.y = float(dataj['S10'][1]) / 10
-			Sensor_pose10.orientation.z = float(dataj['S10'][2]) / 10
+			Sensor_pose10.position.x = float(dataj['S10'][0]) / 10
+			Sensor_pose10.position.y = float(dataj['S10'][1]) / 10
+			Sensor_pose10.position.z = float(dataj['S10'][2]) / 10
 			Sensor_posest10=PoseStamped()
 			Sensor_posest10.pose=Sensor_pose10
 			Sensor_posest10.header.stamp = rospy.get_rostime()
 			Sensor_posest10.header.frame_id = '/world'
 
 			Sensor_pose11 = Pose()
-			Sensor_pose11.orientation.x = float(dataj['S11'][0]) / 10
-			Sensor_pose11.orientation.y = float(dataj['S11'][1]) / 10
-			Sensor_pose11.orientation.z = float(dataj['S11'][2]) / 10
+			Sensor_pose11.position.x = float(dataj['S11'][0]) / 10
+			Sensor_pose11.position.y = float(dataj['S11'][1]) / 10
+			Sensor_pose11.position.z = float(dataj['S11'][2]) / 10
 			Sensor_posest11=PoseStamped()
 			Sensor_posest11.pose=Sensor_pose11
 			Sensor_posest11.header.stamp = rospy.get_rostime()
