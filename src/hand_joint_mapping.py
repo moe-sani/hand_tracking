@@ -9,14 +9,19 @@ from std_msgs.msg import Float64
 from hand_tracking.msg import Float64ArrayStamped
 from geometry_msgs.msg import TwistStamped
 import numpy
-
+from tf.transformations import *
+from geometry_msgs.msg import Quaternion
 import math
 
 
 pub_rh_ffj0=0
+pub_rh_ffj1=0
+pub_rh_ffj2=0
 pub_rh_ffj3=0
 pub_rh_ffj4=0
 pub_rh_mfj0=0
+pub_rh_mfj1=0
+pub_rh_mfj2=0
 pub_rh_mfj3=0
 pub_rh_mfj4=0
 pub_rh_thj1=0
@@ -64,22 +69,95 @@ Tool_status_offset=0
 
 
 lst=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+def inverse_quat(q):
+    q.w=-q.w
+    return q
 
 
-def calc_joints(data1,data2):
+
+
+
+def calc_joints(pose1,pose2):
     output=Point()
-    output.x=data2.position.x-data1.position.x
-    output.y=data2.position.y-data1.position.y
-    output.z=data2.position.z-data1.position.z
+    # output.x=data2.position.x-data1.position.x
+    # output.y=data2.position.y-data1.position.y
+    # output.z=data2.position.z-data1.position.z
+
+    # relative quaternion!
+    q1=pose1.orientation
+    q1_inverse=inverse_quat(q1)
+    q2=pose2.orientation
+
+    # print("q1:", q1)
+    # print("q2:", q2)
+
+    # print("=============direct euler representation of each quaternion")
+    # euler1=euler_from_quaternion([q1.x, q1.y, q1.z, q1.w])
+    # euler2=euler_from_quaternion([q2.x, q2.y, q2.z, q2.w])
+    # print("euler1.x", math.degrees(euler1[0]))
+    # print("euler1.y", math.degrees(euler1[1]))
+    # print("euler1.z", math.degrees(euler1[2]))
+    # print("euler2.x", math.degrees(euler2[0]))
+    # print("euler2.y", math.degrees(euler2[1]))
+    # print("euler2.z", math.degrees(euler2[2]))
+    # print("==================convert to euler =======================")
+    # pub_eu_rel=rospy.Publisher('/pub_eu_rel',Point,queue_size=1)
+
+
+
+
+    print("===================multiplication of two===================")
+    # qr=q2*q1_inverse
+    # q=quaternion_multiply([q2.x, q2.y, q2.z, q2.w], [q1_inverse.x,q1_inverse.y ,q1_inverse.z ,q1_inverse.w ])
+    q=quaternion_multiply([q2.x, q2.y, q2.z, q2.w], [q1.x,q1.y ,q1.z ,-q1.w ])
+    euler=euler_from_quaternion(q)
+    print("euler.x", math.degrees(euler[0]))
+    print("euler.y", math.degrees(euler[1]))
+    print("euler.z", math.degrees(euler[2]))
+
+    # publish relative quaternion
+
+    pub_qr=rospy.Publisher('/q21_relative',Quaternion,queue_size=1)
+    pub_qr_eu=rospy.Publisher('/q21_relative_euler',Point,queue_size=1)
+
+    qr=Quaternion(q[0],q[1] ,q[2] ,q[3] )
+    pub_qr.publish(qr)
+
+    euler_point=Point()
+    euler_point.x=euler[0]
+    euler_point.y=euler[1]
+    euler_point.z=euler[2]
+    pub_qr_eu.publish(euler_point)
+
+
+
+    # print("===================method of paper===================")
+    # alpha
+    # output.x=math.atan2(2*(qr.z*qr.w - qr.y*qr.x),qr.w*qr.w + qr.y*qr.y - qr.x*qr.x - qr.z*qr.z)
+    # beta
+    # output.y=math.asin(2*(qr.x*qr.w + qr.y*qr.z))
+    # gama
+    # output.z=math.atan2(2*(qr.y*qr.w - qr.x*qr.z),qr.w*qr.y - qr.y*qr.y - qr.x*qr.x + qr.z*qr.z)
+    # print("Index_DIP.x:", math.degrees(output.x))
+    # print("Index_DIP.y:", math.degrees(output.y))
+    # print("Index_DIP.z", math.degrees(output.z))
+
+
+
+
     return output
 
 
 
 def imu_serial_callback(data):
     global pub_rh_ffj0
+    global pub_rh_ffj1
+    global pub_rh_ffj2
     global pub_rh_ffj3
     global pub_rh_ffj4
     global pub_rh_mfj0
+    global pub_rh_mfj1
+    global pub_rh_mfj2
     global pub_rh_mfj3
     global pub_rh_mfj4
     global pub_rh_thj1
@@ -133,15 +211,17 @@ def imu_serial_callback(data):
 
     #full sensor model
     Index_DIP = calc_joints(data.poses[0],data.poses[1])
-    Index_PIP = calc_joints(data.poses[6],data.poses[0])
-    Index_MIP = calc_joints(data.poses[9],data.poses[6])
-    Middle_DIP = calc_joints(data.poses[3],data.poses[2])
-    Middle_PIP = calc_joints(data.poses[7],data.poses[3])
-    Middle_MIP = calc_joints(data.poses[9],data.poses[7])
-    Thumb_DIP = calc_joints(data.poses[5],data.poses[4])
-    Thumb_MIP = calc_joints(data.poses[11],data.poses[5])
-    Thumb_CMC = calc_joints(data.poses[10],data.poses[11])
-    Wrist_JOINT = calc_joints(data.poses[8],data.poses[9])
+
+
+    Index_PIP = 0#calc_joints(data.poses[6],data.poses[0])
+    Index_MIP = 0#calc_joints(data.poses[9],data.poses[6])
+    Middle_DIP = 0#calc_joints(data.poses[3],data.poses[2])
+    Middle_PIP = 0#calc_joints(data.poses[7],data.poses[3])
+    Middle_MIP = 0#calc_joints(data.poses[9],data.poses[7])
+    Thumb_DIP = 0#calc_joints(data.poses[5],data.poses[4])
+    Thumb_MIP = 0#calc_joints(data.poses[11],data.poses[5])
+    Thumb_CMC = 0#calc_joints(data.poses[10],data.poses[11])
+    Wrist_JOINT = 0#calc_joints(data.poses[8],data.poses[9])
 
     ffj1=Index_DIP.x
     ffj2=Index_PIP.x
@@ -159,7 +239,7 @@ def imu_serial_callback(data):
     wrj1=Wrist_JOINT.x
     wrj2=Wrist_JOINT.z
 
-    Tool_pose=data.poses[12]
+    Tool_pose=data.poses[11]
     Tool_status=Tool_pose.position.x
 
     # print("Index_MIP:{}".format(Index_MIP))
@@ -235,9 +315,13 @@ def imu_serial_callback(data):
 
 
         pub_rh_ffj0.publish(math.radians(ffj1-ffj1_offset))
+        pub_rh_ffj1.publish(math.radians(ffj1-ffj1_offset))
+        pub_rh_ffj2.publish(math.radians(ffj2-ffj2_offset))
         pub_rh_ffj3.publish(math.radians(ffj3-ffj3_offset))
         pub_rh_ffj4.publish(math.radians(ffj4-ffj4_offset))
         pub_rh_mfj0.publish(math.radians(mfj1-mfj1_offset))
+        pub_rh_mfj1.publish(math.radians(mfj1-mfj1_offset))
+        pub_rh_mfj2.publish(math.radians(mfj2-mfj2_offset))
         pub_rh_mfj3.publish(math.radians(mfj3-mfj3_offset))
         pub_rh_mfj4.publish(math.radians(mfj4-mfj4_offset))
         pub_rh_thj1.publish(math.radians(thj1-thj1_offset))
@@ -281,9 +365,13 @@ def main():
     rospy.Subscriber("/imu_pub_array", PoseArray, imu_serial_callback, queue_size=10)
     # global listener
     global pub_rh_ffj0
+    global pub_rh_ffj1
+    global pub_rh_ffj2
     global pub_rh_ffj3
     global pub_rh_ffj4
     global pub_rh_mfj0
+    global pub_rh_mfj1
+    global pub_rh_mfj2
     global pub_rh_mfj3
     global pub_rh_mfj4
     global pub_rh_thj1
@@ -302,10 +390,14 @@ def main():
 
     # listener = tf.TransformListener()
     pub_rh_ffj0 = rospy.Publisher("/sh_rh_ffj0_position_controller/command", Float64, queue_size=10) #index pip
+    pub_rh_ffj1 = rospy.Publisher("/sh_rh_ffj1_position_controller/command", Float64, queue_size=10) #index pip
+    pub_rh_ffj2 = rospy.Publisher("/sh_rh_ffj2_position_controller/command", Float64, queue_size=10) #index pip
     pub_rh_ffj3 = rospy.Publisher("/sh_rh_ffj3_position_controller/command", Float64, queue_size=10)#index mix flex
     pub_rh_ffj4 = rospy.Publisher("/sh_rh_ffj4_position_controller/command", Float64, queue_size=10)#index mix abd
 
     pub_rh_mfj0 = rospy.Publisher("/sh_rh_mfj0_position_controller/command", Float64, queue_size=10) #middle pip
+    pub_rh_mfj1 = rospy.Publisher("/sh_rh_mfj1_position_controller/command", Float64, queue_size=10) #middle pip
+    pub_rh_mfj2 = rospy.Publisher("/sh_rh_mfj2_position_controller/command", Float64, queue_size=10) #middle pip
     pub_rh_mfj3 = rospy.Publisher("/sh_rh_mfj3_position_controller/command", Float64, queue_size=10)#middle mix flex
     pub_rh_mfj4 = rospy.Publisher("/sh_rh_mfj4_position_controller/command", Float64, queue_size=10)#middle mix abd
 

@@ -7,17 +7,24 @@ from std_msgs.msg import String
 import serial
 from geometry_msgs.msg import Point
 from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import Quaternion
 
 from geometry_msgs.msg import Pose
 from geometry_msgs.msg import PoseArray
 from std_msgs.msg import Float64
 from std_msgs.msg import Header
 import json
+from tf.transformations import euler_from_quaternion, quaternion_from_euler
+import tf
+import math
+
 ser = serial.Serial('/dev/ttyACM0', 115200, timeout=10)		#ttyUSB0
 
-temp_pose=Pose()
+# temp_pose=Pose()
 
-lst=[temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose]
+# lst=[temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose]
+
+jason_stream_lables=['S0','S1','S2','S3','S4','S5','S6','S7','S8','S9','S0','S11']
 
 
 def twos_comp(val, bits):
@@ -26,28 +33,86 @@ def twos_comp(val, bits):
 		val = val - (1 << bits)        # compute negative value
 	return val                         # return positive value as is
 
-
 def lowbyte_highbyte_to_float(highbyte,lowbyte):
 	# print("high:{} low:{}".format(bin(ord(highbyte)),bin(ord(lowbyte))))
 	result = twos_comp((int(ord(highbyte)) << 8) + int(ord(lowbyte)),16)
 	return result
 
 
+def extract_quaternion(data):
+	# print(data)
+	Sensor_quat = Quaternion()
+	Sensor_quat.x = float(data[0]) / 10000
+	Sensor_quat.y = float(data[1]) / 10000
+	Sensor_quat.z = float(data[2]) / 10000
+	Sensor_quat.w = float(data[3]) / 10000
+	return Sensor_quat
+
+
+def extract_pose_list(jdata):
+	global jason_stream_lables
+	pose_list = []
+	for i in range(0, len(jdata)-1):
+		# print("iterate number:======================{}=====================:".format(i))
+		temp_pose = Pose()
+		temp_pose.orientation=extract_quaternion(jdata[jason_stream_lables[i]])
+		# print ("temp pose:")
+		# print(temp_pose)
+		pose_list.append(temp_pose)
+		# pose_list.append(i)
+		# print("pose_list:")
+		# print(pose_list)
+
+	pub_S0 = rospy.Publisher('/imu_S0', Quaternion, queue_size=1)
+	pub_S1 = rospy.Publisher('/imu_S1', Quaternion, queue_size=1)
+	pub_S0_euler = rospy.Publisher('/imu_S0_euler', Point, queue_size=1)
+	pub_S1_euler = rospy.Publisher('/imu_S1_euler', Point, queue_size=1)
+	pub_eu_rel = rospy.Publisher('/pub_eu_rel', Point, queue_size=1)
+
+	Sensor0=pose_list[0]
+	Sensor1=pose_list[1]
+	pub_S0.publish(Sensor0.orientation)
+	pub_S1.publish(Sensor1.orientation)
+
+	br = tf.TransformBroadcaster()
+	br.sendTransform((1, 1, 0),
+					 (Sensor0.orientation.x, Sensor0.orientation.y, Sensor0.orientation.z, Sensor0.orientation.w),
+					 rospy.Time.now(),
+					 "sensor0",
+					 "world")
+
+	euler1=Point()
+	euler2=Point()
+	[euler1.x,euler1.y ,euler1.z ] = euler_from_quaternion([Sensor0.orientation.x, Sensor0.orientation.y, Sensor0.orientation.z, Sensor0.orientation.w])
+	[euler2.x,euler2.y ,euler2.z ] = euler_from_quaternion([Sensor1.orientation.x, Sensor1.orientation.y, Sensor1.orientation.z, Sensor1.orientation.w])
+	pub_S0_euler.publish(euler1)
+	pub_S1_euler.publish(euler2)
+
+	output = Point()
+	output.x=euler1.x-euler2.x
+	output.y=euler1.y-euler2.y
+	output.z=euler1.z-euler2.z
+	pub_eu_rel.publish(output)
+	# print(pose_list)
+	return pose_list
+
+
 
 def talker():
-	pub_S0 = rospy.Publisher('/imu_S0', PoseStamped, queue_size=1)
-	pub_S1 = rospy.Publisher('/imu_S1', PoseStamped, queue_size=1)
-	pub_S2 = rospy.Publisher('/imu_S2', PoseStamped, queue_size=1)
-	pub_S3 = rospy.Publisher('/imu_S3', PoseStamped, queue_size=1)
-	pub_S4 = rospy.Publisher('/imu_S4', PoseStamped, queue_size=1)
-	pub_S5 = rospy.Publisher('/imu_S5', PoseStamped, queue_size=1)
-	pub_S6 = rospy.Publisher('/imu_S6', PoseStamped, queue_size=1)
-	pub_S7 = rospy.Publisher('/imu_S7', PoseStamped, queue_size=1)
-	pub_S8 = rospy.Publisher('/imu_S8', PoseStamped, queue_size=1)
-	pub_S9 = rospy.Publisher('/imu_S9', PoseStamped, queue_size=1)
-	pub_S10= rospy.Publisher('/imu_S10', PoseStamped, queue_size=1)
-	pub_S11 = rospy.Publisher('/imu_S11', PoseStamped, queue_size=1)
-	pub_SC = rospy.Publisher('/scale', PoseStamped, queue_size=1)
+	pub_S0 = rospy.Publisher('/imu_S0', Quaternion, queue_size=1)
+	# pub_S0o = rospy.Publisher('/imu_S0o', Point, queue_size=1)
+	pub_S1 = rospy.Publisher('/imu_S1', Quaternion, queue_size=1)
+	pub_S2 = rospy.Publisher('/imu_S2', Quaternion, queue_size=1)
+	pub_S3 = rospy.Publisher('/imu_S3', Quaternion, queue_size=1)
+	pub_S4 = rospy.Publisher('/imu_S4', Quaternion, queue_size=1)
+	pub_S5 = rospy.Publisher('/imu_S5', Quaternion, queue_size=1)
+	pub_S6 = rospy.Publisher('/imu_S6', Quaternion, queue_size=1)
+	pub_S7 = rospy.Publisher('/imu_S7', Quaternion, queue_size=1)
+	pub_S8 = rospy.Publisher('/imu_S8', Quaternion, queue_size=1)
+	pub_S9 = rospy.Publisher('/imu_S9', Quaternion, queue_size=1)
+	pub_S10= rospy.Publisher('/imu_S10', Quaternion, queue_size=1)
+	pub_S11 = rospy.Publisher('/imu_S11', Quaternion, queue_size=1)
+	pub_SC = rospy.Publisher('/scale', Point, queue_size=1)
 	# pub_S12 = rospy.Publisher('/imu_S12', Point, queue_size=1)
 	# pub_S13 = rospy.Publisher('/imu_S13', Point, queue_size=1)
 	pubArray = rospy.Publisher('/imu_pub_array', PoseArray, queue_size=1)
@@ -57,8 +122,6 @@ def talker():
 	# print(ser.name)  # check which port was really used
 	ser.close()
 	ser.open()
-	imu_array=PoseArray()
-	myheader = Header()
 	while not rospy.is_shutdown():
 
 
@@ -72,156 +135,27 @@ def talker():
 			# print(dataj)
 			# print("SC:")
 			# print(dataj['SC'][0])
-			Sensor_pose0 = Pose()
-			Sensor_pose0.position.x = float(dataj['S0'][0]) / 10
-			Sensor_pose0.position.y = float(dataj['S0'][1]) / 10
-			Sensor_pose0.position.z = float(dataj['S0'][2]) / 10
-			Sensor_posest0=PoseStamped()
-			Sensor_posest0.pose=Sensor_pose0
-			Sensor_posest0.header.stamp = rospy.get_rostime()
-			Sensor_posest0.header.frame_id = '/world'
 
-
-
-			Sensor_pose1 = Pose()
-			# TODO: change all to orientations
-			Sensor_pose1.position.x = float(dataj['S1'][0]) / 10
-			Sensor_pose1.position.y = float(dataj['S1'][1]) / 10
-			Sensor_pose1.position.z = float(dataj['S1'][2]) / 10
-			Sensor_posest1=PoseStamped()
-			Sensor_posest1.pose=Sensor_pose1
-			Sensor_posest1.header.stamp = rospy.get_rostime()
-			Sensor_posest1.header.frame_id = '/world'
-
-			Sensor_pose2 = Pose()
-			Sensor_pose2.position.x = float(dataj['S2'][0]) / 10
-			Sensor_pose2.position.y = float(dataj['S2'][1]) / 10
-			Sensor_pose2.position.z = float(dataj['S2'][2]) / 10
-			Sensor_posest2=PoseStamped()
-			Sensor_posest2.pose=Sensor_pose2
-			Sensor_posest2.header.stamp = rospy.get_rostime()
-			Sensor_posest2.header.frame_id = '/world'
-
-			Sensor_pose3 = Pose()
-			Sensor_pose3.position.x = float(dataj['S3'][0]) / 10
-			Sensor_pose3.position.y = float(dataj['S3'][1]) / 10
-			Sensor_pose3.position.z = float(dataj['S3'][2]) / 10
-			Sensor_posest3=PoseStamped()
-			Sensor_posest3.pose=Sensor_pose3
-			Sensor_posest3.header.stamp = rospy.get_rostime()
-			Sensor_posest3.header.frame_id = '/world'
-
-			Sensor_pose4 = Pose()
-			Sensor_pose4.position.x = float(dataj['S4'][0]) / 10
-			Sensor_pose4.position.y = float(dataj['S4'][1]) / 10
-			Sensor_pose4.position.z = float(dataj['S4'][2]) / 10
-			Sensor_posest4=PoseStamped()
-			Sensor_posest4.pose=Sensor_pose4
-			Sensor_posest4.header.stamp = rospy.get_rostime()
-			Sensor_posest4.header.frame_id = '/world'
-
-			Sensor_pose5 = Pose()
-			Sensor_pose5.position.x = float(dataj['S5'][0]) / 10
-			Sensor_pose5.position.y = float(dataj['S5'][1]) / 10
-			Sensor_pose5.position.z = float(dataj['S5'][2]) / 10
-			Sensor_posest5=PoseStamped()
-			Sensor_posest5.pose=Sensor_pose5
-			Sensor_posest5.header.stamp = rospy.get_rostime()
-			Sensor_posest5.header.frame_id = '/world'
-
-			Sensor_pose6 = Pose()
-			Sensor_pose6.position.x = float(dataj['S6'][0]) / 10
-			Sensor_pose6.position.y = float(dataj['S6'][1]) / 10
-			Sensor_pose6.position.z = float(dataj['S6'][2]) / 10
-			Sensor_posest6=PoseStamped()
-			Sensor_posest6.pose=Sensor_pose6
-			Sensor_posest6.header.stamp = rospy.get_rostime()
-			Sensor_posest6.header.frame_id = '/world'
-
-			Sensor_pose7 = Pose()
-			Sensor_pose7.position.x = float(dataj['S7'][0]) / 10
-			Sensor_pose7.position.y = float(dataj['S7'][1]) / 10
-			Sensor_pose7.position.z = float(dataj['S7'][2]) / 10
-			Sensor_posest7=PoseStamped()
-			Sensor_posest7.pose=Sensor_pose7
-			Sensor_posest7.header.stamp = rospy.get_rostime()
-			Sensor_posest7.header.frame_id = '/world'
-
-			Sensor_pose8 = Pose()
-			Sensor_pose8.position.x = float(dataj['S8'][0]) / 10
-			Sensor_pose8.position.y = float(dataj['S8'][1]) / 10
-			Sensor_pose8.position.z = float(dataj['S8'][2]) / 10
-			Sensor_posest8=PoseStamped()
-			Sensor_posest8.pose=Sensor_pose8
-			Sensor_posest8.header.stamp = rospy.get_rostime()
-			Sensor_posest8.header.frame_id = '/world'
-
-			Sensor_pose9 = Pose()
-			Sensor_pose9.position.x = float(dataj['S9'][0]) / 10
-			Sensor_pose9.position.y = float(dataj['S9'][1]) / 10
-			Sensor_pose9.position.z = float(dataj['S9'][2]) / 10
-			Sensor_posest9=PoseStamped()
-			Sensor_posest9.pose=Sensor_pose9
-			Sensor_posest9.header.stamp = rospy.get_rostime()
-			Sensor_posest9.header.frame_id = '/world'
-
-			Sensor_pose10 = Pose()
-			Sensor_pose10.position.x = float(dataj['S10'][0]) / 10
-			Sensor_pose10.position.y = float(dataj['S10'][1]) / 10
-			Sensor_pose10.position.z = float(dataj['S10'][2]) / 10
-			Sensor_posest10=PoseStamped()
-			Sensor_posest10.pose=Sensor_pose10
-			Sensor_posest10.header.stamp = rospy.get_rostime()
-			Sensor_posest10.header.frame_id = '/world'
-
-			Sensor_pose11 = Pose()
-			Sensor_pose11.position.x = float(dataj['S11'][0]) / 10
-			Sensor_pose11.position.y = float(dataj['S11'][1]) / 10
-			Sensor_pose11.position.z = float(dataj['S11'][2]) / 10
-			Sensor_posest11=PoseStamped()
-			Sensor_posest11.pose=Sensor_pose11
-			Sensor_posest11.header.stamp = rospy.get_rostime()
-			Sensor_posest11.header.frame_id = '/world'
-
-			Sensor_poseSC = Pose()
-			Sensor_poseSC.position.x = float(dataj['SC'][0]) / 10
-			Sensor_posestSC=PoseStamped()
-			Sensor_posestSC.pose=Sensor_poseSC
-			Sensor_posestSC.header.stamp = rospy.get_rostime()
-			Sensor_posestSC.header.frame_id = '/world'
-
-			pub_S0.publish(Sensor_posest0)
-			pub_S1.publish(Sensor_posest1)
-			pub_S2.publish(Sensor_posest2)
-			pub_S3.publish(Sensor_posest3)
-			pub_S4.publish(Sensor_posest4)
-			pub_S5.publish(Sensor_posest5)
-			pub_S6.publish(Sensor_posest6)
-			pub_S7.publish(Sensor_posest7)
-			pub_S8.publish(Sensor_posest8)
-			pub_S9.publish(Sensor_posest9)
-			pub_S10.publish(Sensor_posest10)
-			pub_S11.publish(Sensor_posest11)
-			pub_SC.publish(Sensor_posestSC)
-
-			lst[0] =Sensor_pose0
-			lst[1] =Sensor_pose1
-			lst[2] =Sensor_pose2
-			lst[3] =Sensor_pose3
-			lst[4] =Sensor_pose4
-			lst[5] =Sensor_pose5
-			lst[6] =Sensor_pose6
-			lst[7] =Sensor_pose7
-			lst[8] =Sensor_pose8
-			lst[9] =Sensor_pose9
-			lst[10] =Sensor_pose10
-			lst[11] =Sensor_pose11
-			lst[12] =Sensor_poseSC
-
-			imu_array.header.stamp=rospy.get_rostime()
+			imu_array=PoseArray()
+			imu_array.header.stamp = rospy.get_rostime()
 			imu_array.header.frame_id='/world'
-			imu_array.poses=lst
+			imu_array.poses=extract_pose_list(dataj)
+			# print("extract_pose_list(dataj):=======================================")
+			# print(extract_pose_list(dataj))
 			pubArray.publish(imu_array)
+
+
+			# For debugging ================
+
+			# orientation_list = [Sensor_point0.x, Sensor_point0.y, Sensor_point0.z, Sensor_point0.w]
+			# (Sensor_point0o.x, Sensor_point0o.y, Sensor_point0o.z) = euler_from_quaternion(orientation_list)
+			# Sensor_point0o.x=math.degrees(Sensor_point0o.x)
+			# Sensor_point0o.y=math.degrees(Sensor_point0o.y)
+			# Sensor_point0o.z=math.degrees(Sensor_point0o.z)
+			# roll, pitch, yaw
+
+
+
 		rate.sleep()
 
 if __name__ == '__main__':
@@ -234,3 +168,66 @@ if __name__ == '__main__':
 		print ('closing port')
 		ser.close()
 		# sock.close()
+
+# # TODO: change them to function
+# Sensor0_quat = Quaternion()
+# Sensor1_quat = Quaternion()
+# Sensor2_quat = Quaternion()
+# Sensor3_quat = Quaternion()
+# Sensor4_quat = Quaternion()
+# Sensor5_quat = Quaternion()
+# Sensor6_quat = Quaternion()
+# Sensor7_quat = Quaternion()
+# Sensor8_quat = Quaternion()
+# Sensor9_quat = Quaternion()
+# Sensor10_quat = Quaternion()
+# Sensor11_quat = Quaternion()
+#
+# Sensor0_quat.x = float(dataj['S0'][0])/10000
+# Sensor0_quat.y = float(dataj['S0'][1])/10000
+# Sensor0_quat.z = float(dataj['S0'][2])/10000
+# Sensor0_quat.w = float(dataj['S0'][3])/10000
+# Sensor1_quat.x = float(dataj['S1'][0]) / 10000
+# Sensor1_quat.y = float(dataj['S1'][1]) / 10000
+# Sensor1_quat.z = float(dataj['S1'][2]) / 10000
+# Sensor1_quat.w = float(dataj['S1'][3]) / 10000
+# Sensor2_quat.x = float(dataj['S2'][0]) / 10000
+# Sensor2_quat.y = float(dataj['S2'][1]) / 10000
+# Sensor2_quat.z = float(dataj['S2'][2]) / 10000
+# Sensor2_quat.w = float(dataj['S2'][3]) / 10000
+# Sensor3_quat.x = float(dataj['S3'][0]) / 10000
+# Sensor3_quat.y = float(dataj['S3'][1]) / 10000
+# Sensor3_quat.z = float(dataj['S3'][2]) / 10000
+# Sensor3_quat.w = float(dataj['S3'][3]) / 10000
+# Sensor4_quat.x = float(dataj['S4'][0]) / 10000
+# Sensor4_quat.y = float(dataj['S4'][1]) / 10000
+# Sensor4_quat.z = float(dataj['S4'][2]) / 10000
+# Sensor4_quat.w = float(dataj['S4'][3]) / 10000
+# Sensor5_quat.x = float(dataj['S5'][0]) / 10000
+# Sensor5_quat.y = float(dataj['S5'][1]) / 10000
+# Sensor5_quat.z = float(dataj['S5'][2]) / 10000
+# Sensor5_quat.w = float(dataj['S5'][3]) / 10000
+# Sensor6_quat.x = float(dataj['S6'][0]) / 10000
+# Sensor6_quat.y = float(dataj['S6'][1]) / 10000
+# Sensor6_quat.z = float(dataj['S6'][2]) / 10000
+# Sensor6_quat.w = float(dataj['S6'][3]) / 10000
+# Sensor7_quat.x = float(dataj['S7'][0]) / 10000
+# Sensor7_quat.y = float(dataj['S7'][1]) / 10000
+# Sensor7_quat.z = float(dataj['S7'][2]) / 10000
+# Sensor7_quat.w = float(dataj['S7'][3]) / 10000
+# Sensor8_quat.x = float(dataj['S8'][0]) / 10000
+# Sensor8_quat.y = float(dataj['S8'][1]) / 10000
+# Sensor8_quat.z = float(dataj['S8'][2]) / 10000
+# Sensor8_quat.w = float(dataj['S8'][3]) / 10000
+# Sensor9_quat.x = float(dataj['S9'][0]) / 10000
+# Sensor9_quat.y = float(dataj['S9'][1]) / 10000
+# Sensor9_quat.z = float(dataj['S9'][2]) / 10000
+# Sensor9_quat.w = float(dataj['S9'][3]) / 10000
+# Sensor10_quat.x = float(dataj['S10'][0]) / 10000
+# Sensor10_quat.y = float(dataj['S10'][1]) / 10000
+# Sensor10_quat.z = float(dataj['S10'][2]) / 10000
+# Sensor10_quat.w = float(dataj['S10'][3]) / 10000
+# Sensor11_quat.x = float(dataj['S11'][0]) / 10000
+# Sensor11_quat.y = float(dataj['S11'][1]) / 10000
+# Sensor11_quat.z = float(dataj['S11'][2]) / 10000
+# Sensor11_quat.w = float(dataj['S11'][3]) / 10000
