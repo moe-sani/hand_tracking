@@ -51,34 +51,6 @@ def extract_quaternion(data):
 	Sensor_quat.w = float(data[3]) / 10000
 	return Sensor_quat
 
-def brodcast_tf_now(br,traslation,orientaion,frame_id,refrence_frame):
-	br.sendTransform(traslation,
-					 orientaion,
-					 rospy.Time.now(),
-					 frame_id,
-					 refrence_frame)
-
-
-
-def tf_brodcaster(pose_list):
-
-	tf_prodcaster_list=[]
-	for i in range(len(pose_list)):
-		tf_prodcaster_list.append(tf.TransformBroadcaster())
-
-	sensor_n_list = rospy.get_param('/sensor_n_list')
-	sensor_f_list = rospy.get_param('/sensor_f_list')
-	sensor_rf_list = rospy.get_param('/sensor_rf_list')
-	hft_tf_translations = rospy.get_param('/hft_tf')
-
-
-	for i,pose in enumerate(pose_list):
-		temp_tr=hft_tf_translations[sensor_f_list[i]]
-		# print("temp_tr",temp_tr)
-		brodcast_tf_now(tf_prodcaster_list[i],
-						(temp_tr[0],temp_tr[1],temp_tr[2]),(pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w),
-						sensor_f_list[i],sensor_rf_list[i])
-	return 0
 
 
 
@@ -174,7 +146,7 @@ def talker():
 			imu_array.header.stamp = rospy.get_rostime()
 			imu_array.header.frame_id='/world'
 			imu_array.poses=extract_pose_list(dataj)
-			tf_brodcaster(imu_array.poses)
+
 			# print("extract_pose_list(dataj):=======================================")
 			# print(extract_pose_list(dataj))
 			pubArray.publish(imu_array)
