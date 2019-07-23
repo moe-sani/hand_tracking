@@ -18,6 +18,9 @@ from tf.transformations import euler_from_quaternion, quaternion_from_euler
 import tf
 import math
 
+
+
+
 ser = serial.Serial('/dev/ttyACM0', 115200, timeout=10)		#ttyUSB0
 
 # temp_pose=Pose()
@@ -48,6 +51,36 @@ def extract_quaternion(data):
 	Sensor_quat.w = float(data[3]) / 10000
 	return Sensor_quat
 
+def brodcast_tf_now(br,traslation,orientaion,frame_id,refrence_frame):
+	br.sendTransform(traslation,
+					 orientaion,
+					 rospy.Time.now(),
+					 frame_id,
+					 refrence_frame)
+
+
+
+def tf_brodcaster(pose_list):
+
+	tf_prodcaster_list=[]
+	for i in range(len(pose_list)):
+		tf_prodcaster_list.append(tf.TransformBroadcaster())
+
+	sensor_n_list = rospy.get_param('/sensor_n_list')
+	sensor_f_list = rospy.get_param('/sensor_f_list')
+	sensor_rf_list = rospy.get_param('/sensor_rf_list')
+	hft_tf_translations = rospy.get_param('/hft_tf')
+
+
+	for i,pose in enumerate(pose_list):
+		temp_tr=hft_tf_translations[sensor_f_list[i]]
+		# print("temp_tr",temp_tr)
+		brodcast_tf_now(tf_prodcaster_list[i],
+						(temp_tr[0],temp_tr[1],temp_tr[2]),(pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w),
+						sensor_f_list[i],sensor_rf_list[i])
+	return 0
+
+
 
 def extract_pose_list(jdata):
 	global jason_stream_lables
@@ -63,42 +96,39 @@ def extract_pose_list(jdata):
 		# print("pose_list:")
 		# print(pose_list)
 
-	pub_S0 = rospy.Publisher('/imu_S0', Quaternion, queue_size=1)
-	pub_S1 = rospy.Publisher('/imu_S1', Quaternion, queue_size=1)
-	pub_S0_euler = rospy.Publisher('/imu_S0_euler', Point, queue_size=1)
-	pub_S1_euler = rospy.Publisher('/imu_S1_euler', Point, queue_size=1)
-	pub_eu_rel = rospy.Publisher('/pub_eu_rel', Point, queue_size=1)
+	# pub_S0 = rospy.Publisher('/imu_S0', Quaternion, queue_size=1)
+	# pub_S1 = rospy.Publisher('/imu_S1', Quaternion, queue_size=1)
+	# pub_S0_euler = rospy.Publisher('/imu_S0_euler', Point, queue_size=1)
+	# pub_S1_euler = rospy.Publisher('/imu_S1_euler', Point, queue_size=1)
+	# pub_eu_rel = rospy.Publisher('/pub_eu_rel', Point, queue_size=1)
 
-	Sensor0=pose_list[0]
-	Sensor1=pose_list[1]
-	pub_S0.publish(Sensor0.orientation)
-	pub_S1.publish(Sensor1.orientation)
+	# Sensor0=pose_list[0]
+	# Sensor1=pose_list[1]
+	# pub_S0.publish(Sensor0.orientation)
+	# pub_S1.publish(Sensor1.orientation)
 
-	br = tf.TransformBroadcaster()
-	br.sendTransform((1, 1, 0),
-					 (Sensor0.orientation.x, Sensor0.orientation.y, Sensor0.orientation.z, Sensor0.orientation.w),
-					 rospy.Time.now(),
-					 "sensor0",
-					 "world")
 
-	euler1=Point()
-	euler2=Point()
-	[euler1.x,euler1.y ,euler1.z ] = euler_from_quaternion([Sensor0.orientation.x, Sensor0.orientation.y, Sensor0.orientation.z, Sensor0.orientation.w])
-	[euler2.x,euler2.y ,euler2.z ] = euler_from_quaternion([Sensor1.orientation.x, Sensor1.orientation.y, Sensor1.orientation.z, Sensor1.orientation.w])
-	pub_S0_euler.publish(euler1)
-	pub_S1_euler.publish(euler2)
+	# euler1=Point()
+	# euler2=Point()
+	# [euler1.x,euler1.y ,euler1.z ] = euler_from_quaternion([Sensor0.orientation.x, Sensor0.orientation.y, Sensor0.orientation.z, Sensor0.orientation.w])
+	# [euler2.x,euler2.y ,euler2.z ] = euler_from_quaternion([Sensor1.orientation.x, Sensor1.orientation.y, Sensor1.orientation.z, Sensor1.orientation.w])
+	# pub_S0_euler.publish(euler1)
+	# pub_S1_euler.publish(euler2)
 
-	output = Point()
-	output.x=euler1.x-euler2.x
-	output.y=euler1.y-euler2.y
-	output.z=euler1.z-euler2.z
-	pub_eu_rel.publish(output)
+	# output = Point()
+	# output.x=euler1.x-euler2.x
+	# output.y=euler1.y-euler2.y
+	# output.z=euler1.z-euler2.z
+	# pub_eu_rel.publish(output)
 	# print(pose_list)
 	return pose_list
 
 
 
 def talker():
+	rospy.init_node('Serial_Publisher', anonymous=True)
+
+
 	pub_S0 = rospy.Publisher('/imu_S0', Quaternion, queue_size=1)
 	# pub_S0o = rospy.Publisher('/imu_S0o', Point, queue_size=1)
 	pub_S1 = rospy.Publisher('/imu_S1', Quaternion, queue_size=1)
@@ -116,10 +146,14 @@ def talker():
 	# pub_S12 = rospy.Publisher('/imu_S12', Point, queue_size=1)
 	# pub_S13 = rospy.Publisher('/imu_S13', Point, queue_size=1)
 	pubArray = rospy.Publisher('/imu_pub_array', PoseArray, queue_size=1)
-	rospy.init_node('talker', anonymous=True)
 	rate = rospy.Rate(1000) # 10hz
 	# ser = serial.Serial('/dev/ttyUSB0')  # open serial port
 	# print(ser.name)  # check which port was really used
+
+
+
+
+
 	ser.close()
 	ser.open()
 	while not rospy.is_shutdown():
@@ -140,6 +174,7 @@ def talker():
 			imu_array.header.stamp = rospy.get_rostime()
 			imu_array.header.frame_id='/world'
 			imu_array.poses=extract_pose_list(dataj)
+			tf_brodcaster(imu_array.poses)
 			# print("extract_pose_list(dataj):=======================================")
 			# print(extract_pose_list(dataj))
 			pubArray.publish(imu_array)
@@ -159,6 +194,7 @@ def talker():
 		rate.sleep()
 
 if __name__ == '__main__':
+
 	try:
 		talker()
 	except rospy.ROSInterruptException:

@@ -1,0 +1,39 @@
+#hand tracking algorithm parameters
+#authors:
+#Mohammad Fattahi Sani - fattahi.m91@gmail.com
+
+#============ Sensor list name
+
+#
+/sensor_n_list : ['Sensor0',  'Sensor1',   'Sensor2',   'Sensor3',     'Sensor4',   'Sensor5',   'Sensor6', 'Sensor7',     'Sensor8', 'Sensor9', 'Sensor10', 'Sensor11']
+/sensor_f_list : ['Index_PIP','Index_DIP', 'Middle_DIP','Middle_PIP',  'Thumb_DIP','Thumb_MIP', 'Index_MIP', 'Middle_MIP', 'Elbow', 'Wrist', 'Thumb', 'Thumb_CMC']
+/sensor_rf_list: ['Index_MIP','Index_PIP', 'Middle_PIP', 'Middle_MIP', 'Thumb_MIP', 'Thumb_CMC', 'Wrist',    'Wrist',      'world', 'Elbow', 'Wrist', 'Thumb']
+
+
+
+
+
+#============ translations wrt the previous frame
+
+/hft_tf/Elbow: [0.0,0.0,0.0]              #wrt world
+/hft_tf/Wrist: [0.1,0.0,0.0]            #wrt elbow
+
+
+/hft_tf/Thumb: [0.0,-0.01,0.0]          #wrt wrist
+/hft_tf/Middle_MIP: [0.1,0.0,0.0]         #wrt wrist
+/hft_tf/Index_MIP: [0.1,-0.01,0.0]          #wrt wrist
+
+/hft_tf/Thumb_CMC: [0,0.01,0.0]          #wrt thumb
+
+/hft_tf/Thumb_MIP  : [0.5,0.0,0.0]        #wrt Thumb_CMC
+/hft_tf/Thumb_DIP  : [0.5,0.0,0.0]        #wrt Thumb_MIP
+
+/hft_tf/Middle_PIP : [0.5,0.0,0.0]        #wrt Middle_MIP
+/hft_tf/Middle_DIP : [0.5,0.0,0.0]        #wrt Middle_PIP
+
+/hft_tf/Index_PIP  : [0.5,0.0,0.0]        #wrt Index_MIP
+/hft_tf/Index_DIP  : [0.5,0.0,0.0]        #wrt Index_PIP
+
+
+
+

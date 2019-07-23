@@ -12,7 +12,7 @@ import numpy
 from tf.transformations import *
 from geometry_msgs.msg import Quaternion
 import math
-
+import tf
 
 pub_rh_ffj0=0
 pub_rh_ffj1=0
@@ -209,6 +209,36 @@ def imu_serial_callback(data):
     #     print("sensor{}:{}".format(sensor_id, sensor_values))
     rospy.loginfo("test")
 
+    listener = tf.TransformListener()
+
+    while not rospy.is_shutdown():
+        try:
+            (trans,rot) = listener.lookupTransform('/sensor1', '/sensor0', rospy.Time(0))
+            print("rot:",rot)
+            euler = euler_from_quaternion(rot)
+            print("euler.x", math.degrees(euler[0]))
+            print("euler.y", math.degrees(euler[1]))
+            print("euler.z", math.degrees(euler[2]))
+
+            # publish relative quaternion
+
+            # pub_qr = rospy.Publisher('/q21_relative', Quaternion, queue_size=1)
+            pub_qr_eu = rospy.Publisher('/q21_relative_euler', Point, queue_size=1)
+
+            euler_point = Point()
+            euler_point.x = euler[0]
+            euler_point.y = euler[1]
+            euler_point.z = euler[2]
+            pub_qr_eu.publish(euler_point)
+
+
+        except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+            continue
+
+
+
+
+
     #full sensor model
     Index_DIP = calc_joints(data.poses[0],data.poses[1])
 
@@ -363,6 +393,7 @@ def main():
 
     # rospy.Subscriber("/odas_sst_raw", Odas, odas_snobber_Callback, queue_size=10)
     rospy.Subscriber("/imu_pub_array", PoseArray, imu_serial_callback, queue_size=10)
+
     # global listener
     global pub_rh_ffj0
     global pub_rh_ffj1
