@@ -27,7 +27,7 @@ ser = serial.Serial('/dev/ttyACM0', 115200, timeout=10)		#ttyUSB0
 
 # lst=[temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose]
 
-jason_stream_lables=['S0','S1','S2','S3','S4','S5','S6','S7','S8','S9','S0','S11']
+jason_stream_lables=['S0','S1','S2','S3','S4','S5','S6','S7','S8','S9','S10','S11']
 
 
 def twos_comp(val, bits):
