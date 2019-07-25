@@ -84,6 +84,7 @@ def tf_brodcaster(pose_list):
 
     sensor_f_list = rospy.get_param('/sensor_f_list')
     sensor_rf_list = rospy.get_param('/sensor_rf_list')
+    sensor_rf_raw_list = rospy.get_param('/sensor_rf_raw_list')
     hft_tf_translations = rospy.get_param('/hft_tf')
 
 
@@ -94,7 +95,7 @@ def tf_brodcaster(pose_list):
         quat_cf=transform_to_cf(pose.orientation,sensor_rf_list[i])
         brodcast_tf_now(tf_prodcaster_list[i],
 						(temp_tr[0],temp_tr[1],temp_tr[2]),(quat_cf.x, quat_cf.y, quat_cf.z, quat_cf.w),
-						sensor_f_list[i],sensor_rf_list[i])
+						sensor_rf_raw_list[i],sensor_rf_list[i])
     return 0
 
 
@@ -132,7 +133,45 @@ def subtract_offset(imu_pose_list,imu_offset_list):
     return imu_pose_array_no_offset
 
 
+def tf_tree_offset_publisher(offset_list):
+    # TODO: transforms from refrence frame raw to refrence frame
+    # tf_prodcaster_list=[]
+    # for i in range(len(pose_list)):
+    #     tf_prodcaster_list.append(tf.TransformBroadcaster())
 
+    pub_tf = rospy.Publisher("/tf", tfMessage)
+
+    sensor_f_list = rospy.get_param('/sensor_f_list')
+    sensor_rf_list = rospy.get_param('/sensor_rf_list')
+    sensor_rf_raw_list = rospy.get_param('/sensor_rf_raw_list')
+    hft_tf_translations = rospy.get_param('/hft_tf')
+
+    lst=[]
+    for i,pose in enumerate(offset_list):
+        # temp_tr=hft_tf_translations[sensor_f_list[i]]
+
+        # print("temp_tr",temp_tr)
+        quat_cf=transform_to_cf(pose.orientation,sensor_rf_raw_list[i])
+
+        t = TransformStamped()
+        t.header.frame_id = sensor_rf_raw_list[i]
+        t.header.stamp = rospy.Time.now()
+        t.child_frame_id = sensor_f_list[i]
+        t.transform.translation.x = 0
+        t.transform.translation.y = 0
+        t.transform.translation.z = 0
+
+        t.transform.rotation.x = quat_cf.x
+        t.transform.rotation.y = quat_cf.y
+        t.transform.rotation.z = quat_cf.z
+        t.transform.rotation.w = -quat_cf.w
+        lst.append(t)
+    tfm = tfMessage(lst)
+    pub_tf.publish(tfm)
+
+
+
+    return 0
 
 
 
@@ -144,52 +183,47 @@ def imu_array_callback(imu_pose_array):
         offset_buff=imu_pose_list
     else:
         # quat_offset_list=calc_mean_of_buff(offset_buff)
-        imu_pose_array_no_offset=subtract_offset(imu_pose_list,offset_buff)
-        tf_brodcaster(imu_pose_array_no_offset)
-        # tf_brodcaster(imu_pose_list)
-
-    pose8_off=offset_buff[0]
-    pose8=imu_pose_list[0]
-    pose11=offset_buff[11]
+        # imu_pose_array_no_offset=subtract_offset(imu_pose_list,offset_buff)
+        # tf_brodcaster(imu_pose_array_no_offset)
+        tf_brodcaster(imu_pose_list)
+        tf_tree_offset_publisher(offset_buff)
 
 
 
-
-
-
-    global change
+    # pose8_off=offset_buff[0]
+    # pose8=imu_pose_list[0]
+    # pose11=offset_buff[11]
     rospy.loginfo("test")
-    pub_tf = rospy.Publisher("/tf", tfMessage)
-    t = TransformStamped()
-    t.header.frame_id = "world"
-    t.header.stamp = rospy.Time.now()
-    t.child_frame_id = "carrot_offset"
-    t.transform.translation.x = 1.0
-    t.transform.translation.y = 1.0
-    t.transform.translation.z = 0.0
 
-    t.transform.rotation.x = pose8_off.orientation.x
-    t.transform.rotation.y = pose8_off.orientation.y
-    t.transform.rotation.z = pose8_off.orientation.z
-    t.transform.rotation.w = -pose8_off.orientation.w
-
-    t1 = TransformStamped()
-    t1.header.frame_id = "carrot_offset"
-    t1.header.stamp = rospy.Time.now()
-    t1.child_frame_id = "carrot"
-    t1.transform.translation.x = 0.0
-    t1.transform.translation.y = 0.0
-    t1.transform.translation.z = 0.0
-
-    t1.transform.rotation.x = pose8.orientation.x
-    t1.transform.rotation.y = pose8.orientation.y
-    t1.transform.rotation.z = pose8.orientation.z
-    t1.transform.rotation.w = pose8.orientation.w
-
-
-
-    tfm = tfMessage([t, t1])
-    pub_tf.publish(tfm)
+    # rospy.loginfo("test")
+    # pub_tf = rospy.Publisher("/tf", tfMessage)
+    # t = TransformStamped()
+    # t.header.frame_id = "world"
+    # t.header.stamp = rospy.Time.now()
+    # t.child_frame_id = "carrot_offset"
+    # t.transform.translation.x = 1.0
+    # t.transform.translation.y = 1.0
+    # t.transform.translation.z = 0.0
+    #
+    # t.transform.rotation.x = pose8_off.orientation.x
+    # t.transform.rotation.y = pose8_off.orientation.y
+    # t.transform.rotation.z = pose8_off.orientation.z
+    # t.transform.rotation.w = -pose8_off.orientation.w
+    #
+    # t1 = TransformStamped()
+    # t1.header.frame_id = "carrot_offset"
+    # t1.header.stamp = rospy.Time.now()
+    # t1.child_frame_id = "carrot"
+    # t1.transform.translation.x = 0.0
+    # t1.transform.translation.y = 0.0
+    # t1.transform.translation.z = 0.0
+    #
+    # t1.transform.rotation.x = pose8.orientation.x
+    # t1.transform.rotation.y = pose8.orientation.y
+    # t1.transform.rotation.z = pose8.orientation.z
+    # t1.transform.rotation.w = pose8.orientation.w
+    # tfm = tfMessage([t, t1])
+    # pub_tf.publish(tfm)
 
 
 

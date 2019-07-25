@@ -13,8 +13,9 @@
 # IMPORTANT: The order should be from parent to child
 /jason_stream_lables: ['S8',    'S9',   'S7',       'S6',       'S10',  'S11',      'S5',       'S4',       'S3',         'S2',       'S0',       'S1']
 
-/sensor_f_list :      ['Elbow','Wrist','Middle_MIP','Index_MIP','Thumb','Thumb_CMC','Thumb_MIP','Thumb_DIP','Middle_PIP','Middle_DIP','Index_PIP','Index_DIP',]
-/sensor_rf_list:      ['world','Elbow','Wrist',      'Wrist',  'Wrist',  'Thumb',    'Thumb_CMC','Thumb_MIP','Middle_MIP','Middle_PIP','Index_MIP','Index_PIP']
+/sensor_f_list :      ['Elbow',     'Wrist',    'Middle_MIP','Index_MIP','Thumb','Thumb_CMC','Thumb_MIP','Thumb_DIP','Middle_PIP','Middle_DIP','Index_PIP','Index_DIP',]
+/sensor_rf_list:      ['world',     'Elbow',    'Wrist',      'Wrist',  'Wrist',  'Thumb',    'Thumb_CMC','Thumb_MIP','Middle_MIP','Middle_PIP','Index_MIP','Index_PIP']
+/sensor_rf_raw_list:  ['Elbow_raw','Wrist_raw',  'Wrist_raw',  'Wrist_raw',  'Thumb_raw',    'Thumb_CMC_raw','Thumb_MIP_raw','Middle_MIP_raw','Middle_PIP_raw','Index_MIP_raw','Index_PIP_raw']
 
 #/sensor_rf_list: ['world','world', 'world', 'world', 'world', 'world', 'world',    'world',      'world', 'world', 'world', 'world']
 
@@ -23,7 +24,7 @@
 #============ translations wrt world
 
 /hft_tf/Elbow: [0.5,0.0,0.0]
-/hft_tf/Wrist: [0.2,0.0,0.0]
+/hft_tf/Wrist: [0.7,0.0,0.0]
 
 
 /hft_tf/Thumb: [0.0,-0.01,0.0]
@@ -35,10 +36,10 @@
 /hft_tf/Middle_PIP : [0.25,0.0,0.0]
 /hft_tf/Middle_DIP : [0.30,0.0,0.0]
 
-/hft_tf/Index_MIP   : [0.2, 0.0,0.0]
-/hft_tf/Index_PIP  : [0.2, 0.0,0.0]
-/hft_tf/Index_DIP  : [0.2, 0.0,0.0]
-
+/hft_tf/Index_MIP   : [0.9,-0.02,0.0]
+/hft_tf/Index_PIP  : [1.1,-0.02,0.0]
+/hft_tf/Index_DIP  : [1.3,-0.02,0.0]
+#
 #============ translations wrt the previous frame
 
 #/hft_tf/Elbow: [0.0,0.0,0.0]              #wrt world
