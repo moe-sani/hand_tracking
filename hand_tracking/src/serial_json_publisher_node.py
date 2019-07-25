@@ -27,7 +27,6 @@ ser = serial.Serial('/dev/ttyACM0', 115200, timeout=10)		#ttyUSB0
 
 # lst=[temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose]
 
-jason_stream_lables=['S0','S1','S2','S3','S4','S5','S6','S7','S8','S9','S10','S11']
 
 
 def twos_comp(val, bits):
@@ -54,8 +53,7 @@ def extract_quaternion(data):
 
 
 
-def extract_pose_list(jdata):
-	global jason_stream_lables
+def extract_pose_list(jdata,jason_stream_lables):
 	pose_list = []
 	for i in range(0, len(jdata)-1):
 		# print("iterate number:======================{}=====================:".format(i))
@@ -122,8 +120,7 @@ def talker():
 	# ser = serial.Serial('/dev/ttyUSB0')  # open serial port
 	# print(ser.name)  # check which port was really used
 
-
-
+	jason_stream_lables = rospy.get_param('/jason_stream_lables')
 
 
 	ser.close()
@@ -145,7 +142,7 @@ def talker():
 			imu_array=PoseArray()
 			imu_array.header.stamp = rospy.get_rostime()
 			imu_array.header.frame_id='/world'
-			imu_array.poses=extract_pose_list(dataj)
+			imu_array.poses=extract_pose_list(dataj,jason_stream_lables)
 
 			# print("extract_pose_list(dataj):=======================================")
 			# print(extract_pose_list(dataj))

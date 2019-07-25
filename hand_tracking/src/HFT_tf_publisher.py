@@ -20,6 +20,53 @@ import tf
 offset_buff=[]
 global listener
 
+
+def transform_to_cf(quat,target_frame):
+    global listener
+    # br = tf.TransformBroadcaster()
+    # br.sendTransform((1, 1, 0),
+    #                  (sensor6_pose.orientation.x, sensor6_pose.orientation.y, sensor6_pose.orientation.z,
+    #                   sensor6_pose.orientation.w),
+    #                  rospy.Time.now(),
+    #                  '/sensor6',
+    #                  '/world')
+
+
+
+    quat_st_wf = QuaternionStamped()
+    quat_st_wf.header.frame_id = '/world'
+    quat_st_wf.quaternion = quat
+
+    quat_st_cf = listener.transformQuaternion(target_frame, quat_st_wf)
+    return quat_st_cf.quaternion
+
+
+
+    # br1 = tf.TransformBroadcaster()
+    # br1.sendTransform((0.5, 0, 0),
+    #                   (sensor1_sf.quaternion.x, sensor1_sf.quaternion.y, sensor1_sf.quaternion.z,
+    #                    sensor1_sf.quaternion.w),
+    #                   rospy.Time.now(),
+    #                   '/sensor1',
+    #                   '/sensor6')
+    #
+    # sensor0_wf = QuaternionStamped()
+    # sensor0_wf.header.frame_id = '/world'
+    # sensor0_wf.quaternion = sensor0_pose.orientation
+    #
+    # sensor0_sf = listener.transformQuaternion('/sensor1', sensor0_wf)
+    # br2 = tf.TransformBroadcaster()
+    # br2.sendTransform((0.5, 0, 0),
+    #                   (sensor0_sf.quaternion.x, sensor0_sf.quaternion.y, sensor0_sf.quaternion.z,
+    #                    sensor0_sf.quaternion.w),
+    #                   rospy.Time.now(),
+    #                   '/sensor0',
+    #                   '/sensor1')
+
+
+
+
+
 def brodcast_tf_now(br,traslation,orientaion,frame_id,refrence_frame):
     br.sendTransform(traslation,
 					 orientaion,
@@ -33,7 +80,6 @@ def tf_brodcaster(pose_list):
     for i in range(len(pose_list)):
         tf_prodcaster_list.append(tf.TransformBroadcaster())
 
-    sensor_n_list = rospy.get_param('/sensor_n_list')
     sensor_f_list = rospy.get_param('/sensor_f_list')
     sensor_rf_list = rospy.get_param('/sensor_rf_list')
     hft_tf_translations = rospy.get_param('/hft_tf')
@@ -42,8 +88,9 @@ def tf_brodcaster(pose_list):
     for i,pose in enumerate(pose_list):
         temp_tr=hft_tf_translations[sensor_f_list[i]]
         # print("temp_tr",temp_tr)
+        quat_cf=transform_to_cf(pose.orientation,sensor_rf_list[i])
         brodcast_tf_now(tf_prodcaster_list[i],
-						(temp_tr[0],temp_tr[1],temp_tr[2]),(pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w),
+						(temp_tr[0],temp_tr[1],temp_tr[2]),(quat_cf.x, quat_cf.y, quat_cf.z, quat_cf.w),
 						sensor_f_list[i],sensor_rf_list[i])
     return 0
 
@@ -89,7 +136,6 @@ def subtract_offset(imu_pose_list,imu_offset_list):
 
 def imu_array_callback(imu_pose_array):
     global offset_buff
-    global listener
     imu_pose_list=imu_pose_array.poses
     if len(offset_buff)<1 :
         # imu_array_store(imu_pose_list)
@@ -98,55 +144,17 @@ def imu_array_callback(imu_pose_array):
         # quat_offset_list=calc_mean_of_buff(offset_buff)
 
         imu_pose_array_no_offset=subtract_offset(imu_pose_list,offset_buff)
-        # tf_brodcaster(imu_pose_array_no_offset)
+        tf_brodcaster(imu_pose_array_no_offset)
 
     # for sensor_id, sensor_values in enumerate(data.poses):
     #     print("sensor{}:{}".format(sensor_id, sensor_values))
     rospy.loginfo("test")
     # test transforming to frame
-    sensor0_pose=imu_pose_array_no_offset[0]
-    sensor1_pose=imu_pose_array_no_offset[1]
-    sensor6_pose=imu_pose_array_no_offset[6]
-
-    br=tf.TransformBroadcaster()
-    br.sendTransform((1,1,0),
-					 (sensor6_pose.orientation.x, sensor6_pose.orientation.y, sensor6_pose.orientation.z, sensor6_pose.orientation.w),
-					 rospy.Time.now(),
-					 '/sensor6',
-					 '/world')
-
-    sensor1_wf=QuaternionStamped()
-    sensor1_wf.header.frame_id='/world'
-    sensor1_wf.quaternion=sensor1_pose.orientation
+    # sensor0_pose=imu_pose_array_no_offset[0]
+    # sensor1_pose=imu_pose_array_no_offset[1]
+    # sensor6_pose=imu_pose_array_no_offset[6]
 
 
-    # sensor1_sf=listener.transformPoint('/sensor0', sensor1_wf)
-    # now = rospy.Time.now()
-    # listener.waitForTransform("/sensor0", "/world", now, rospy.Duration(1.0))
-
-    # trans=tf.TransformerROS(True,now)
-    sensor1_sf=listener.transformQuaternion('/sensor6',sensor1_wf)
-
-    br1 = tf.TransformBroadcaster()
-    br1.sendTransform((0.5, 0, 0),
-                     (sensor1_sf.quaternion.x, sensor1_sf.quaternion.y, sensor1_sf.quaternion.z,
-                      sensor1_sf.quaternion.w),
-                     rospy.Time.now(),
-                     '/sensor1',
-                     '/sensor6')
-
-    sensor0_wf = QuaternionStamped()
-    sensor0_wf.header.frame_id = '/world'
-    sensor0_wf.quaternion = sensor0_pose.orientation
-
-    sensor0_sf = listener.transformQuaternion('/sensor1', sensor0_wf)
-    br2 = tf.TransformBroadcaster()
-    br2.sendTransform((0.5, 0, 0),
-                     (sensor0_sf.quaternion.x, sensor0_sf.quaternion.y, sensor0_sf.quaternion.z,
-                      sensor0_sf.quaternion.w),
-                     rospy.Time.now(),
-                     '/sensor0',
-                     '/sensor1')
 
 
 
