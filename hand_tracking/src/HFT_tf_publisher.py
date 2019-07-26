@@ -56,17 +56,17 @@ def build_tf_tree(imu_pose_list,imu_offset_list):
     sensor_rf_raw_list = rospy.get_param('/sensor_rf_raw_list')
     hft_tf_translations = rospy.get_param('/hft_tf')
     for idx,(pose, pose_offset) in enumerate(zip(imu_pose_list, imu_offset_list)):
-        # STEP1: tranform the quaternions to correct frame:
-        quat_cf=transform_to_cf(pose.orientation,sensor_rf_list[idx])
-        # STEP2: append new frame: which is called frame-raw; (it has trans +rot but not offsets)
-        temp_tr = hft_tf_translations[sensor_f_list[idx]]
-        append_new_frame((temp_tr[0],temp_tr[1],temp_tr[2]),(quat_cf.x, quat_cf.y, quat_cf.z, quat_cf.w),
-                         sensor_rf_list[idx],sensor_rf_raw_list[idx])
         # STEP3: transform pose_offset to [frame]
         quat_offset_cf = transform_to_cf(pose_offset.orientation, sensor_rf_list[idx])
         # STEP4: append new frame
-        append_new_frame((0, 0, 0), (quat_offset_cf.x, quat_offset_cf.y, quat_offset_cf.z, -quat_offset_cf.w),
-                         sensor_rf_raw_list[idx],sensor_f_list[idx])
+        temp_tr = hft_tf_translations[sensor_f_list[idx]]
+        append_new_frame((temp_tr[0], temp_tr[1], temp_tr[2]), (quat_offset_cf.x, quat_offset_cf.y, quat_offset_cf.z, -quat_offset_cf.w),
+                         sensor_rf_list[idx], sensor_rf_raw_list[idx])
+        # STEP1: tranform the quaternions to correct frame:
+        quat_cf=transform_to_cf(pose.orientation, sensor_rf_list[idx])
+        # STEP2: append new frame: which is called frame-raw; (it has trans +rot but not offsets)
+        append_new_frame((0, 0, 0), (quat_cf.x, quat_cf.y, quat_cf.z, quat_cf.w),
+                         sensor_rf_raw_list[idx], sensor_f_list[idx])
 
 
 
@@ -191,40 +191,40 @@ def imu_array_callback(imu_pose_array):
         # tf_brodcaster(imu_pose_array_no_offset)
         # tf_brodcaster(imu_pose_list)
         # tf_tree_offset_publisher(offset_buff)
-        # build_tf_tree(imu_pose_list, offset_buff)
+        build_tf_tree(imu_pose_list, offset_buff)
         rospy.loginfo("test")
-
-    pose8_off=offset_buff[0]
-    pose8=imu_pose_list[0]
-    pose11=offset_buff[11]
-    pub_tf = rospy.Publisher("/tf", tfMessage)
-    t = TransformStamped()
-    t.header.frame_id = "world"
-    t.header.stamp = rospy.Time.now()
-    t.child_frame_id = "carrot_raw"
-    t.transform.translation.x = 1.0
-    t.transform.translation.y = 1.0
-    t.transform.translation.z = 0.0
-
-    t.transform.rotation.x = pose8.orientation.x
-    t.transform.rotation.y = pose8.orientation.y
-    t.transform.rotation.z = pose8.orientation.z
-    t.transform.rotation.w = pose8.orientation.w
-
-    t1 = TransformStamped()
-    t1.header.frame_id = "carrot_raw"
-    t1.header.stamp = rospy.Time.now()
-    t1.child_frame_id = "carrot"
-    t1.transform.translation.x = 0.0
-    t1.transform.translation.y = 0.0
-    t1.transform.translation.z = 0.0
-
-    t1.transform.rotation.x = pose8_off.orientation.x
-    t1.transform.rotation.y = pose8_off.orientation.y
-    t1.transform.rotation.z = pose8_off.orientation.z
-    t1.transform.rotation.w = -pose8_off.orientation.w
-    tfm = tfMessage([t, t1])
-    pub_tf.publish(tfm)
+    #
+    # pose8_off=offset_buff[0]
+    # pose8=imu_pose_list[0]
+    # pose11=offset_buff[11]
+    # pub_tf = rospy.Publisher("/tf", tfMessage)
+    # t = TransformStamped()
+    # t.header.frame_id = "world"
+    # t.header.stamp = rospy.Time.now()
+    # t.child_frame_id = "carrot_raw"
+    # t.transform.translation.x = 1.0
+    # t.transform.translation.y = 1.0
+    # t.transform.translation.z = 0.0
+    #
+    # t.transform.rotation.x = pose8.orientation.x
+    # t.transform.rotation.y = pose8.orientation.y
+    # t.transform.rotation.z = pose8.orientation.z
+    # t.transform.rotation.w = pose8.orientation.w
+    #
+    # t1 = TransformStamped()
+    # t1.header.frame_id = "carrot_raw"
+    # t1.header.stamp = rospy.Time.now()
+    # t1.child_frame_id = "carrot"
+    # t1.transform.translation.x = 0.0
+    # t1.transform.translation.y = 0.0
+    # t1.transform.translation.z = 0.0
+    #
+    # t1.transform.rotation.x = pose8_off.orientation.x
+    # t1.transform.rotation.y = pose8_off.orientation.y
+    # t1.transform.rotation.z = pose8_off.orientation.z
+    # t1.transform.rotation.w = -pose8_off.orientation.w
+    # tfm = tfMessage([t, t1])
+    # pub_tf.publish(tfm)
 
 
 def main():
