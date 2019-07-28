@@ -178,6 +178,8 @@ def tf_tree_offset_publisher(offset_list):
     return 0
 
 
+offset_counter=0
+quat9_bf_off=0
 
 def imu_array_callback(imu_pose_array):
     global offset_buff
@@ -191,41 +193,122 @@ def imu_array_callback(imu_pose_array):
         # tf_brodcaster(imu_pose_array_no_offset)
         # tf_brodcaster(imu_pose_list)
         # tf_tree_offset_publisher(offset_buff)
-        build_tf_tree(imu_pose_list, offset_buff)
+        # build_tf_tree(imu_pose_list, offset_buff)
         rospy.loginfo("test")
-    #
-    # pose8_off=offset_buff[0]
-    # pose8=imu_pose_list[0]
-    # pose11=offset_buff[11]
+    #==================DEBUG
+
+
+    pose8 = imu_pose_list[1]
+
+    pub_tf = rospy.Publisher("/tf", tfMessage)
+    t = TransformStamped()
+    t.header.frame_id = "world"
+    t.header.stamp = rospy.Time.now()
+    t.child_frame_id = "box"
+    t.transform.translation.x = 0.5
+    t.transform.translation.y = 0.5
+    t.transform.translation.z = 0.0
+
+    t.transform.rotation.x = pose8.orientation.x
+    t.transform.rotation.y = pose8.orientation.y
+    t.transform.rotation.z = pose8.orientation.z
+    t.transform.rotation.w = pose8.orientation.w
+    tfm = tfMessage([t])
+    pub_tf.publish(tfm)
+
+
+
+
+
+
+    # ==================DEBUG
+
+    # pose8_off = offset_buff[0]
+    pose9 = imu_pose_list[0]
+
+    pub_tf = rospy.Publisher("/tf", tfMessage)
+    t = TransformStamped()
+    t.header.frame_id = "world"
+    t.header.stamp = rospy.Time.now()
+    t.child_frame_id = "carrot"
+    t.transform.translation.x = 1
+    t.transform.translation.y = 1
+    t.transform.translation.z = 0.0
+
+    t.transform.rotation.x = pose9.orientation.x
+    t.transform.rotation.y = pose9.orientation.y
+    t.transform.rotation.z = pose9.orientation.z
+    t.transform.rotation.w = pose9.orientation.w
+    tfm = tfMessage([t])
+    pub_tf.publish(tfm)
+    # quat_offset_cf = transform_to_cf(pose8.orientation, 'carrot_offset')
     # pub_tf = rospy.Publisher("/tf", tfMessage)
-    # t = TransformStamped()
-    # t.header.frame_id = "world"
-    # t.header.stamp = rospy.Time.now()
-    # t.child_frame_id = "carrot_raw"
-    # t.transform.translation.x = 1.0
-    # t.transform.translation.y = 1.0
-    # t.transform.translation.z = 0.0
-    #
-    # t.transform.rotation.x = pose8.orientation.x
-    # t.transform.rotation.y = pose8.orientation.y
-    # t.transform.rotation.z = pose8.orientation.z
-    # t.transform.rotation.w = pose8.orientation.w
-    #
     # t1 = TransformStamped()
-    # t1.header.frame_id = "carrot_raw"
+    # t1.header.frame_id = "carrot_offset"
     # t1.header.stamp = rospy.Time.now()
     # t1.child_frame_id = "carrot"
-    # t1.transform.translation.x = 0.0
+    # t1.transform.translation.x = 0.05
     # t1.transform.translation.y = 0.0
     # t1.transform.translation.z = 0.0
     #
-    # t1.transform.rotation.x = pose8_off.orientation.x
-    # t1.transform.rotation.y = pose8_off.orientation.y
-    # t1.transform.rotation.z = pose8_off.orientation.z
-    # t1.transform.rotation.w = -pose8_off.orientation.w
-    # tfm = tfMessage([t, t1])
+    # t1.transform.rotation.x = quat_offset_cf.x
+    # t1.transform.rotation.y = quat_offset_cf.y
+    # t1.transform.rotation.z = quat_offset_cf.z
+    # t1.transform.rotation.w = quat_offset_cf.w
+    # tfm = tfMessage([t1])
     # pub_tf.publish(tfm)
 
+
+    pose9_off=offset_buff[0]
+    pose9=imu_pose_list[0]
+
+    # quat_offset_cf = transform_to_cf(pose9_off.orientation, 'carrot')
+
+    pub_tf = rospy.Publisher("/tf", tfMessage)
+    quat9_bf = transform_to_cf(pose9.orientation, 'box')
+    pub_tf = rospy.Publisher("/tf", tfMessage)
+    t1 = TransformStamped()
+    t1.header.frame_id = "box"
+    t1.header.stamp = rospy.Time.now()
+    t1.child_frame_id = "orange"
+    t1.transform.translation.x = 0.0
+    t1.transform.translation.y = 0.5
+    t1.transform.translation.z = 0.0
+
+    t1.transform.rotation.x = quat9_bf.x
+    t1.transform.rotation.y = quat9_bf.y
+    t1.transform.rotation.z = quat9_bf.z
+    t1.transform.rotation.w = quat9_bf.w
+    tfm = tfMessage([t1])
+    pub_tf.publish(tfm)
+
+    global offset_counter
+    global quat9_bf_off
+    offset_counter=offset_counter+1
+
+    if(offset_counter==100):
+        quat9_bf_off=quat9_bf
+
+    q1 = quat9_bf
+    q2 = quat9_bf_off
+    q = quaternion_multiply([q1.x, q1.y, q1.z, q1.w], [q2.x, q2.y, q2.z, -q2.w])
+
+
+
+    t3 = TransformStamped()
+    t3.header.frame_id = "box"
+    t3.header.stamp = rospy.Time.now()
+    t3.child_frame_id = "apple"
+    t3.transform.translation.x = 0.5
+    t3.transform.translation.y = 0.0
+    t3.transform.translation.z = 0.0
+
+    t3.transform.rotation.x = q[0]
+    t3.transform.rotation.y = q[1]
+    t3.transform.rotation.z = q[2]
+    t3.transform.rotation.w = q[3]
+    tfm = tfMessage([t3])
+    pub_tf.publish(tfm)
 
 def main():
     global listener

@@ -18,48 +18,43 @@
 /sensor_f_list :      ['Elbow',     'Wrist',    'Middle_MIP',       'Index_MIP',      'Thumb',        'Thumb_CMC',      'Thumb_MIP',    'Thumb_DIP',    'Middle_PIP',     'Middle_DIP',    'Index_PIP',  'Index_DIP']
 
 #/sensor_rf_list: ['world','world', 'world', 'world', 'world', 'world', 'world',    'world',      'world', 'world', 'world', 'world']
-
-
-
 #============ translations wrt world
 
-/hft_tf/Elbow: [0.5,0.0,0.0]
-/hft_tf/Wrist: [0.7,0.0,0.0]
+#/hft_tf/Elbow: [0.5,0.0,0.0]
+#/hft_tf/Wrist: [0.7,0.0,0.0]
 
 
-/hft_tf/Thumb: [0.0,-0.01,0.0]
-/hft_tf/Thumb_CMC: [0,0.01,0.0]
-/hft_tf/Thumb_MIP  : [0.5,0.0,0.0]
-/hft_tf/Thumb_DIP  : [0.5,0.0,0.0]
+#/hft_tf/Thumb: [0.0,-0.01,0.0]
+#/hft_tf/Thumb_CMC: [0,0.01,0.0]
+#/hft_tf/Thumb_MIP  : [0.5,0.0,0.0]
+#/hft_tf/Thumb_DIP  : [0.5,0.0,0.0]
 
-/hft_tf/Middle_MIP  : [0.2,0.0,0.0]
-/hft_tf/Middle_PIP : [0.25,0.0,0.0]
-/hft_tf/Middle_DIP : [0.30,0.0,0.0]
+#/hft_tf/Middle_MIP  : [0.2,0.0,0.0]
+#/hft_tf/Middle_PIP : [0.25,0.0,0.0]
+#/hft_tf/Middle_DIP : [0.30,0.0,0.0]
 
-/hft_tf/Index_MIP   : [0.9,-0.02,0.0]
-/hft_tf/Index_PIP  : [1.1,-0.02,0.0]
-/hft_tf/Index_DIP  : [1.3,-0.02,0.0]
+#/hft_tf/Index_MIP   : [0.9,-0.02,0.0]
+#/hft_tf/Index_PIP  : [1.1,-0.02,0.0]
+#/hft_tf/Index_DIP  : [1.3,-0.02,0.0]
 #
 #============ translations wrt the previous frame
 
-#/hft_tf/Elbow: [0.0,0.0,0.0]              #wrt world
-#/hft_tf/Wrist: [0.1,0.0,0.0]            #wrt elbow
-#
-#
-#/hft_tf/Thumb: [0.0,-0.01,0.0]          #wrt wrist
-#/hft_tf/Middle_MIP: [0.1,0.0,0.0]         #wrt wrist
-#/hft_tf/Index_MIP: [0.1,-0.01,0.0]          #wrt wrist
-#
-#/hft_tf/Thumb_CMC: [0,0.01,0.0]          #wrt thumb
-#
-#/hft_tf/Thumb_MIP  : [0.5,0.0,0.0]        #wrt Thumb_CMC
-#/hft_tf/Thumb_DIP  : [0.5,0.0,0.0]        #wrt Thumb_MIP
-#
-#/hft_tf/Middle_PIP : [0.5,0.0,0.0]        #wrt Middle_MIP
-#/hft_tf/Middle_DIP : [0.5,0.0,0.0]        #wrt Middle_PIP
-#
-#/hft_tf/Index_PIP  : [0.5,0.0,0.0]        #wrt Index_MIP
-#/hft_tf/Index_DIP  : [0.5,0.0,0.0]        #wrt Index_PIP
+/hft_tf/Elbow: [0.0,0.0,0.0]              #wrt world
+/hft_tf/Wrist: [0.0,0.1,0.0]            #wrt elbow
+
+
+/hft_tf/Thumb: [0.0,-0.01,0.0]          #wrt wrist
+/hft_tf/Thumb_CMC: [0,0.01,0.0]          #wrt thumb
+/hft_tf/Thumb_MIP  : [0.5,0.0,0.0]        #wrt Thumb_CMC
+/hft_tf/Thumb_DIP  : [0.5,0.0,0.0]        #wrt Thumb_MIP
+
+/hft_tf/Middle_MIP: [0.1,0.0,0.0]         #wrt wrist
+/hft_tf/Middle_PIP : [0.5,0.0,0.0]        #wrt Middle_MIP
+/hft_tf/Middle_DIP : [0.5,0.0,0.0]        #wrt Middle_PIP
+
+/hft_tf/Index_MIP:   [0.0,0.1,0.0]          #wrt wrist
+/hft_tf/Index_PIP  : [0.0,0.1,0.0]        #wrt Index_MIP
+/hft_tf/Index_DIP  : [0.0,0.1,0.0]        #wrt Index_PIP
 
 
 
