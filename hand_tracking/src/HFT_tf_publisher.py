@@ -198,7 +198,7 @@ def imu_array_callback(imu_pose_array):
     #==================DEBUG
 
 
-    pose8 = imu_pose_list[1]
+    pose8 = imu_pose_list[10]
 
     pub_tf = rospy.Publisher("/tf", tfMessage)
     t = TransformStamped()
@@ -224,7 +224,7 @@ def imu_array_callback(imu_pose_array):
     # ==================DEBUG
 
     # pose8_off = offset_buff[0]
-    pose9 = imu_pose_list[0]
+    pose9 = imu_pose_list[11]
 
     pub_tf = rospy.Publisher("/tf", tfMessage)
     t = TransformStamped()
@@ -260,7 +260,7 @@ def imu_array_callback(imu_pose_array):
 
 
     pose9_off=offset_buff[0]
-    pose9=imu_pose_list[0]
+    pose9=imu_pose_list[11]
 
     # quat_offset_cf = transform_to_cf(pose9_off.orientation, 'carrot')
 
@@ -281,6 +281,16 @@ def imu_array_callback(imu_pose_array):
     t1.transform.rotation.w = quat9_bf.w
     tfm = tfMessage([t1])
     pub_tf.publish(tfm)
+
+    # publish euler angle
+    pub_eu_rel = rospy.Publisher('/pub_eu_rel', Point, queue_size=1)
+    euler1 = Point()
+    [euler1.x, euler1.y, euler1.z] = euler_from_quaternion([quat9_bf.x, quat9_bf.y, quat9_bf.z, quat9_bf.w])
+    euler1.x=math.degrees(euler1.x)
+    euler1.y=math.degrees(euler1.y)
+    euler1.z=math.degrees(euler1.z)
+    pub_eu_rel.publish(euler1)
+    print("euler1",euler1)
 
     global offset_counter
     global quat9_bf_off
@@ -309,6 +319,10 @@ def imu_array_callback(imu_pose_array):
     t3.transform.rotation.w = q[3]
     tfm = tfMessage([t3])
     pub_tf.publish(tfm)
+
+
+
+
 
 def main():
     global listener
