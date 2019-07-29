@@ -111,26 +111,13 @@ def active_margine_extraction_ab(new_angle):
     global angle_min_ab
     global angle_max_ab
 
-    if new_angle>angle_max_ab :
-        angle_max_ab=new_angle
-    if new_angle<angle_min_ab:
-        angle_min_ab=new_angle
-
     return [angle_min_ab,angle_max_ab]
 
-angle_min_fl=1000
-angle_max_fl=-1000
-def active_margine_extraction_fl(new_angle):
-    global angle_min_fl
-    global angle_max_fl
 
-    if new_angle>angle_max_fl :
-        angle_max_fl=new_angle
-    if new_angle<angle_min_fl:
-        angle_min_fl=new_angle
-
-    return [angle_min_fl,angle_max_fl]
-
+wrist_fl_high_margin=-1000
+wrist_ab_high_margin=-1000
+wrist_fl_low_margin=1000
+wrist_ab_low_margin=1000
 def imu_array_callback(imu_pose_array):
     # rospy.loginfo("HFT_joint_mapping")
     sensor_f_list = rospy.get_param('/sensor_f_list')
@@ -155,12 +142,38 @@ def imu_array_callback(imu_pose_array):
 
     wrist_fl=euler1.x
     wrist_ab=euler1.z
-    [wrist_ab_min,wrist_ab_max]=active_margine_extraction_ab(wrist_ab)
-    wrist_ab_n=(wrist_ab-wrist_ab_min)/(wrist_ab_max-wrist_ab_min)  #normalize between 0-1
-    print("Ab Min: {}, Max: {}".format(wrist_ab_min,wrist_ab_max))
-    [wrist_fl_min,wrist_fl_max]=active_margine_extraction_fl(wrist_fl)
-    wrist_fl_n=(wrist_fl-wrist_fl_min)/(wrist_fl_max-wrist_fl_min)  #normalize between 0-1
-    print("Fl Min: {}, Max: {}".format(wrist_fl_min,wrist_fl_max))
+
+
+    ROM_WRIST_AB=40
+
+    global wrist_ab_high_margin
+    global wrist_ab_low_margin
+
+
+    if wrist_ab>wrist_ab_high_margin:
+        wrist_ab_high_margin=wrist_ab
+        wrist_ab_low_margin=wrist_ab_high_margin-ROM_WRIST_AB
+
+    if wrist_ab<wrist_ab_low_margin:
+        wrist_ab_low_margin=wrist_ab
+        wrist_ab_high_margin=wrist_ab_low_margin+ROM_WRIST_AB
+
+    wrist_ab_n=abs((wrist_ab-wrist_ab_low_margin)/ROM_WRIST_AB)  #normalize between 0-1
+
+    ROM_WRIST_FL = 60
+    global wrist_fl_high_margin
+    global wrist_fl_low_margin
+
+
+    if wrist_fl>wrist_fl_high_margin:
+        wrist_fl_high_margin=wrist_fl
+        wrist_fl_low_margin=wrist_fl_high_margin-ROM_WRIST_FL
+
+    if wrist_fl<wrist_fl_low_margin:
+        wrist_fl_low_margin=wrist_fl
+        wrist_fl_high_margin=wrist_fl_low_margin+ROM_WRIST_FL
+
+    wrist_fl_n=abs((wrist_fl-wrist_fl_low_margin)/ROM_WRIST_FL)  #normalize between 0-1
 
     # visualize
 
