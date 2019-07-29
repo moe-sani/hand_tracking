@@ -5,6 +5,16 @@ project(hft_state_publisher)
 ## Find catkin and any catkin packages
 find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs genmsg)
 
+include_directories(include)
+include_directories(
+  ${catkin_INCLUDE_DIRS}
+  /opt/ros/kinetic/include/tf2_geometry_msgs/
+  include /opt/ros/kinetic/include/tf2/
+  include ${PROJECT_SOURCE_DIR}/util/libkin/
+  include ${PROJECT_SOURCE_DIR}/util/libmt/
+include ${PROJECT_SOURCE_DIR}/util/
+)
+
 ## Declare ROS messages and services
 #add_message_files(FILES Num.msg)
 #add_service_files(FILES AddTwoInts.srv)
