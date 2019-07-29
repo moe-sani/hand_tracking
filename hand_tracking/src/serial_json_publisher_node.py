@@ -128,26 +128,36 @@ def talker():
 	while not rospy.is_shutdown():
 
 
-		hello_str = "Serial_Publisher Node spinning... %s" % rospy.get_time()
-		rospy.loginfo(hello_str)
+		# hello_str = "Serial_Publisher Node spinning... %s" % rospy.get_time()
+		# rospy.loginfo(hello_str)
 
 		line = ser.readline()  # read a '\n' terminated line
-		print("raw data:{}".format(line))
+		# print("raw data:{}".format(line))
 		if len(line)>13:
 			dataj = json.loads(line)
 			# print(dataj)
 			# print("SC:")
 			# print(dataj['SC'][0])
+			if 'S0' in dataj:
 
-			imu_array=PoseArray()
-			imu_array.header.stamp = rospy.get_rostime()
-			imu_array.header.frame_id='/world'
-			imu_array.poses=extract_pose_list(dataj,jason_stream_lables)
+				imu_array=PoseArray()
+				imu_array.header.stamp = rospy.get_rostime()
+				imu_array.header.frame_id='/world'
+				imu_array.poses=extract_pose_list(dataj,jason_stream_lables)
 
-			# print("extract_pose_list(dataj):=======================================")
-			# print(extract_pose_list(dataj))
-			pubArray.publish(imu_array)
+				# print("extract_pose_list(dataj):=======================================")
+				# print(extract_pose_list(dataj))
+				pubArray.publish(imu_array)
+			elif 'C8' in dataj:
+				print("calibration", dataj)
+				# imu_array = PoseArray()
+				# imu_array.header.stamp = rospy.get_rostime()
+				# imu_array.header.frame_id = '/world'
+				# imu_array.poses = extract_pose_list(dataj, jason_stream_lables)
 
+				# print("extract_pose_list(dataj):=======================================")
+				# print(extract_pose_list(dataj))
+				# pubArray.publish(imu_array)
 
 			# For debugging ================
 
