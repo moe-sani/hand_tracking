@@ -104,22 +104,35 @@ def calc_mean_of_buff(offset_buff):
     return quat_offset_list
     #substract imu pose list from offset values
 
-angle_min=1
-angle_max=2
+angle_min_ab=1000
+angle_max_ab=-1000
 
-def active_margine_extraction(new_angle):
-    global angle_min
-    global angle_max
+def active_margine_extraction_ab(new_angle):
+    global angle_min_ab
+    global angle_max_ab
 
-    if new_angle>angle_max :
-        angle_max=new_angle
-    if new_angle<angle_min:
-        angle_min=new_angle
+    if new_angle>angle_max_ab :
+        angle_max_ab=new_angle
+    if new_angle<angle_min_ab:
+        angle_min_ab=new_angle
 
-    return [angle_min,angle_max]
+    return [angle_min_ab,angle_max_ab]
+
+angle_min_fl=1000
+angle_max_fl=-1000
+def active_margine_extraction_fl(new_angle):
+    global angle_min_fl
+    global angle_max_fl
+
+    if new_angle>angle_max_fl :
+        angle_max_fl=new_angle
+    if new_angle<angle_min_fl:
+        angle_min_fl=new_angle
+
+    return [angle_min_fl,angle_max_fl]
 
 def imu_array_callback(imu_pose_array):
-    rospy.loginfo("HFT_joint_mapping")
+    # rospy.loginfo("HFT_joint_mapping")
     sensor_f_list = rospy.get_param('/sensor_f_list')
 
     imu_pose_list=imu_pose_array.poses
@@ -138,14 +151,16 @@ def imu_array_callback(imu_pose_array):
     euler1.y=math.degrees(euler1.y)
     euler1.z=math.degrees(euler1.z)
     pub_eu_rel.publish(euler1)
-    print("euler1",euler1)
+    print("eulers: x: {}, y: {}, z: {}".format(euler1.x,euler1.y,euler1.z))
 
     wrist_fl=euler1.x
     wrist_ab=euler1.z
-    [wrist_ab_min,wrist_ab_max]=active_margine_extraction(wrist_ab)
+    [wrist_ab_min,wrist_ab_max]=active_margine_extraction_ab(wrist_ab)
     wrist_ab_n=(wrist_ab-wrist_ab_min)/(wrist_ab_max-wrist_ab_min)  #normalize between 0-1
-
-
+    print("Ab Min: {}, Max: {}".format(wrist_ab_min,wrist_ab_max))
+    [wrist_fl_min,wrist_fl_max]=active_margine_extraction_fl(wrist_fl)
+    wrist_fl_n=(wrist_fl-wrist_fl_min)/(wrist_fl_max-wrist_fl_min)  #normalize between 0-1
+    print("Fl Min: {}, Max: {}".format(wrist_fl_min,wrist_fl_max))
 
     # visualize
 
@@ -198,6 +213,29 @@ def imu_array_callback(imu_pose_array):
     # vel.pose.orientation=Wrist_quat
     publisher1.publish(cube1)
 
+    publisher1 = rospy.Publisher('wrist_fl_n', Marker)
+    cube2 = Marker()
+    cube2.header.frame_id = "world"
+    cube2.header.stamp = rospy.Time.now()
+    cube2.ns = "wrist_fl_n"
+    cube2.action = 0
+    cube2.type = vel.CUBE
+    cube2.id = 2
+
+    cube2.scale.x = 0.5
+    cube2.scale.y = 0.1
+    cube2.scale.z = 0.1
+    #
+
+    cube2.color.a = 1
+    cube2.color.r = 1
+    cube2.color.g = 0
+    cube2.color.b = 0
+    cube2.pose.position.x=-1.5
+    cube2.pose.position.y=0.5
+    cube2.pose.position.z=wrist_fl_n
+    # vel.pose.orientation=Wrist_quat
+    publisher1.publish(cube2)
 
 def main():
     global listener
