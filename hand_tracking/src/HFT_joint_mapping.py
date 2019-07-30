@@ -8,6 +8,8 @@ from geometry_msgs.msg import Pose
 from geometry_msgs.msg import PoseArray
 from geometry_msgs.msg import QuaternionStamped
 from geometry_msgs.msg import TransformStamped
+from sensor_msgs.msg import JointState
+
 from tf.msg import tfMessage
 from std_msgs.msg import Float64
 from hand_tracking.msg import Float64ArrayStamped
@@ -114,6 +116,22 @@ def active_margine_extraction_ab(new_angle):
     return [angle_min_ab,angle_max_ab]
 
 
+def publish_to_davinci(outer_wrist_pitch,outer_wrist_yaw):
+    pub_joints = rospy.Publisher('/dvrk/PSM2/joint_states', JointState, queue_size=1)
+    joint_state=JointState()
+
+    # joint_state.name.append("outer_yaw")
+    joint_state.name = ["outer_yaw", "outer_pitch", "outer_pitch_1", "outer_pitch_2", "outer_pitch_3", "outer_pitch_4",
+  "outer_pitch_5", "outer_insertion", "outer_roll", "outer_wrist_pitch", "outer_wrist_yaw",
+  "jaw", "jaw_mimic_1", "jaw_mimic_2"]
+    joint_state.position=[0.0, 0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,outer_wrist_pitch,outer_wrist_yaw,0.0,0.0,0.0]
+    # joint_state.header.frame_id = "world"
+    joint_state.header.stamp = rospy.Time.now()
+    print('joint_state',joint_state)
+    pub_joints.publish(joint_state)
+
+
+
 wrist_fl_high_margin=-1000
 wrist_ab_high_margin=-1000
 wrist_fl_low_margin=1000
@@ -174,6 +192,9 @@ def imu_array_callback(imu_pose_array):
         wrist_fl_high_margin=wrist_fl_low_margin+ROM_WRIST_FL
 
     wrist_fl_n=abs((wrist_fl-wrist_fl_low_margin)/ROM_WRIST_FL)  #normalize between 0-1
+
+    publish_to_davinci(wrist_ab_n*math.pi-math.pi/2,wrist_fl_n*math.pi-math.pi/2)
+
 
     # visualize
 
@@ -255,7 +276,10 @@ def main():
     rospy.init_node('hand_joint_mapping', anonymous=True)
     rospy.Subscriber("/imu_pub_array", PoseArray, imu_array_callback, queue_size=10)
     listener = tf.TransformListener()
-
+    # rate = rospy.Rate(100)  # 10hz
+    # while not rospy.is_shutdown():
+    #     publish_to_davinci()
+    #     rate.sleep()
     rospy.spin()
 
 
