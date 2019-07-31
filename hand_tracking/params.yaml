@@ -11,7 +11,7 @@
 #/sensor_rf_list: ['Index_MIP','Index_PIP', 'Middle_PIP', 'Middle_MIP', 'Thumb_MIP', 'Thumb_CMC', 'Wrist',    'Wrist',      'world', 'Elbow', 'Wrist', 'Thumb']
 
 # IMPORTANT: The order should be from parent to child
-/jason_stream_lables: ['S8',    'S9',   'S7',       'S6',       'S10',  'S11',      'S5',       'S4',       'S3',         'S2',       'S0',       'S1']
+/jason_stream_lables: ['S8',          'S9',       'S7',             'S6',       'S10',  'S11',      'S5',       'S4',       'S3',         'S2',       'S0',       'S1']
 
 /sensor_rf_list:      ['world',     'Elbow',    'Wrist',            'Wrist',          'Wrist',        'Thumb',          'Thumb_CMC',    'Thumb_MIP',    'Middle_MIP',     'Middle_PIP',    'Index_MIP',  'Index_PIP']
 /sensor_rf_raw_list:  ['Elbow_raw','Wrist_raw',  'Middle_MIP_raw',  'Index_MIP_raw',  'Thumb_raw',    'Thumb_CMC_raw',  'Thumb_MIP_raw','Thumb_DIP_raw','Middle_PIP_raw','IMiddle_DIP_raw','Index_PIP_raw', 'Index_DIP_raw']

@@ -106,17 +106,79 @@ def calc_mean_of_buff(offset_buff):
     return quat_offset_list
     #substract imu pose list from offset values
 
-angle_min_ab=1000
-angle_max_ab=-1000
 
-def active_margine_extraction_ab(new_angle):
-    global angle_min_ab
-    global angle_max_ab
+class Active_Margining:
+    def __init__(self, rom,name):
+        print("new margining")
+        self.low_margin=1000
+        self.high_margin=-1000
+        self.rom=rom
+        self.name=name
+    def update_margins(self,new_angle):
 
-    return [angle_min_ab,angle_max_ab]
+        if new_angle > self.high_margin:
+            self.high_margin = new_angle
+            self.low_margin = self.high_margin - self.rom
 
+        if new_angle < self.low_margin:
+            self.low_margin = new_angle
+            self.high_margin = self.low_margin + self.rom
 
-def publish_to_davinci(outer_wrist_pitch,outer_wrist_yaw):
+    def normalize(self,new_angle):
+        self.update_margins(new_angle)
+        normalized_angle = abs((new_angle - self.low_margin) / self.rom)  # normalize between 0-1
+        print("sensor rom: {}, high_margin: {}, low margin: {},normalized_angle:{}".format(self.rom,self.high_margin,self.low_margin,normalized_angle))
+        return normalized_angle
+    def visulize_margins(self):
+        publisher = rospy.Publisher(self.name, Marker)
+        cube = Marker()
+        cube.header.frame_id = "world"
+        cube.header.stamp = rospy.Time.now()
+        cube.ns = "self.name"
+        cube.action = 0
+        cube.type = cube.CUBE
+        cube.id = 2
+
+        cube.scale.x = self.rom/50
+        cube.scale.y = 0.1
+        cube.scale.z = 0.1
+        #
+
+        cube.color.a = 0.5
+        cube.color.r = 0
+        cube.color.g = 1
+        cube.color.b = 0
+        cube.pose.position.x = self.low_margin/100
+        cube.pose.position.y = 0
+        cube.pose.position.z = 0
+        # vel.pose.orientation=Wrist_quat
+        publisher.publish(cube)
+    def visualize_new_angle(self,new_angle):
+        publisher = rospy.Publisher(self.name+'_angle', Marker)
+        cube = Marker()
+        cube.header.frame_id = "world"
+        cube.header.stamp = rospy.Time.now()
+        cube.ns = self.name+'_angle'
+        cube.action = 0
+        cube.type = cube.CUBE
+        cube.id = 2
+
+        cube.scale.x = 0.1
+        cube.scale.y = 0.1
+        cube.scale.z = 0.1
+        #
+
+        cube.color.a = 1
+        cube.color.r = 1
+        cube.color.g = 0
+        cube.color.b = 0
+        cube.pose.position.x = new_angle/100
+        cube.pose.position.y = 0
+        cube.pose.position.z = 0
+        # vel.pose.orientation=Wrist_quat
+        publisher.publish(cube)
+
+def publish_to_davinci(outer_wrist_pitch,outer_wrist_yaw,jaw):
     pub_joints = rospy.Publisher('/dvrk/PSM2/joint_states', JointState, queue_size=1)
     joint_state=JointState()
 
@@ -124,19 +186,23 @@ def publish_to_davinci(outer_wrist_pitch,outer_wrist_yaw):
     joint_state.name = ["outer_yaw", "outer_pitch", "outer_pitch_1", "outer_pitch_2", "outer_pitch_3", "outer_pitch_4",
   "outer_pitch_5", "outer_insertion", "outer_roll", "outer_wrist_pitch", "outer_wrist_yaw",
   "jaw", "jaw_mimic_1", "jaw_mimic_2"]
-    joint_state.position=[0.0, 0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,outer_wrist_pitch,outer_wrist_yaw,0.0,0.0,0.0]
+    # jaw: 0-1.57
+    # jaw_mimic_1 + jaw_mimic_2 should be equal to jaw
+    joint_state.position=[0.0, 0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,outer_wrist_pitch,outer_wrist_yaw,jaw,jaw/2,jaw/2]
     # joint_state.header.frame_id = "world"
     joint_state.header.stamp = rospy.Time.now()
-    print('joint_state',joint_state)
+    # print('joint_state',joint_state)
     pub_joints.publish(joint_state)
 
 
+wrist_ab_margining=Active_Margining(40,'wrist_ab')
+wrist_fl_margining=Active_Margining(60,'wrist_fl')
+index_fl_margining=Active_Margining(90,'index_fl')
 
-wrist_fl_high_margin=-1000
-wrist_ab_high_margin=-1000
-wrist_fl_low_margin=1000
-wrist_ab_low_margin=1000
 def imu_array_callback(imu_pose_array):
+    global wrist_ab_margining
+    global wrist_fl_margining
+    global index_fl_margining
     # rospy.loginfo("HFT_joint_mapping")
     sensor_f_list = rospy.get_param('/sensor_f_list')
 
@@ -146,6 +212,7 @@ def imu_array_callback(imu_pose_array):
 
     # now if you want for example Wrist joint, do as follows:
     Wrist_quat=quat_list_cf[sensor_f_list.index('Wrist')]
+    Index_MIP_quat=quat_list_cf[sensor_f_list.index('Index_MIP')]
     # print("Wrist_quat", Wrist_quat)
 
     # publish euler angle
@@ -156,120 +223,85 @@ def imu_array_callback(imu_pose_array):
     euler1.y=math.degrees(euler1.y)
     euler1.z=math.degrees(euler1.z)
     pub_eu_rel.publish(euler1)
-    print("eulers: x: {}, y: {}, z: {}".format(euler1.x,euler1.y,euler1.z))
+    print("eulers1: x: {}, y: {}, z: {}".format(euler1.x,euler1.y,euler1.z))
 
     wrist_fl=euler1.x
     wrist_ab=euler1.z
 
 
-    ROM_WRIST_AB=40
+    euler2 = Point()
+    [euler2.x, euler2.y, euler2.z] = euler_from_quaternion([Index_MIP_quat.x, Index_MIP_quat.y, Index_MIP_quat.z, Index_MIP_quat.w])
+    euler2.x=math.degrees(euler2.x)
+    euler2.y=math.degrees(euler2.y)
+    euler2.z=math.degrees(euler2.z)
+    print("eulers2: x: {}, y: {}, z: {}".format(euler2.x,euler2.y,euler2.z))
 
-    global wrist_ab_high_margin
-    global wrist_ab_low_margin
-
-
-    if wrist_ab>wrist_ab_high_margin:
-        wrist_ab_high_margin=wrist_ab
-        wrist_ab_low_margin=wrist_ab_high_margin-ROM_WRIST_AB
-
-    if wrist_ab<wrist_ab_low_margin:
-        wrist_ab_low_margin=wrist_ab
-        wrist_ab_high_margin=wrist_ab_low_margin+ROM_WRIST_AB
-
-    wrist_ab_n=abs((wrist_ab-wrist_ab_low_margin)/ROM_WRIST_AB)  #normalize between 0-1
-
-    ROM_WRIST_FL = 60
-    global wrist_fl_high_margin
-    global wrist_fl_low_margin
+    index_fl=euler2.x
 
 
-    if wrist_fl>wrist_fl_high_margin:
-        wrist_fl_high_margin=wrist_fl
-        wrist_fl_low_margin=wrist_fl_high_margin-ROM_WRIST_FL
 
-    if wrist_fl<wrist_fl_low_margin:
-        wrist_fl_low_margin=wrist_fl
-        wrist_fl_high_margin=wrist_fl_low_margin+ROM_WRIST_FL
 
-    wrist_fl_n=abs((wrist_fl-wrist_fl_low_margin)/ROM_WRIST_FL)  #normalize between 0-1
+    wrist_ab_n=wrist_ab_margining.normalize(wrist_ab)
+    wrist_fl_n=wrist_fl_margining.normalize(wrist_fl)
+    index_fl_n=index_fl_margining.normalize(index_fl)
 
-    publish_to_davinci(wrist_ab_n*math.pi-math.pi/2,wrist_fl_n*math.pi-math.pi/2)
+    publish_to_davinci(wrist_ab_n*math.pi-math.pi/2,wrist_fl_n*math.pi-math.pi/2,index_fl_n*math.pi/2)
 
+    index_fl_margining.visulize_margins()
+    index_fl_margining.visualize_new_angle(index_fl)
 
     # visualize
 
-    publisher = rospy.Publisher('Wrist_marker', Marker)
-    vel = Marker()
-    vel.header.frame_id = "world"
-    vel.header.stamp = rospy.Time.now()
-    vel.ns = "wrist"
-    vel.action = 0
-    vel.type = vel.ARROW
-    vel.id = 1
-
-    vel.scale.x = 0.5
-    vel.scale.y = 0.1
-    vel.scale.z = 0.1
+    # publisher = rospy.Publisher('Wrist_marker', Marker)
+    # vel = Marker()
+    # vel.header.frame_id = "world"
+    # vel.header.stamp = rospy.Time.now()
+    # vel.ns = "wrist"
+    # vel.action = 0
+    # vel.type = vel.ARROW
+    # vel.id = 1
     #
-
-    vel.color.a = 1
-    vel.color.r = 0
-    vel.color.g = 0
-    vel.color.b = 1
-    vel.pose.position.x=1
-    vel.pose.position.y=1
-    vel.pose.position.z=1
-    vel.pose.orientation=Wrist_quat
-    publisher.publish(vel)
-
-
-    publisher1 = rospy.Publisher('wrist_ab_n', Marker)
-    cube1 = Marker()
-    cube1.header.frame_id = "world"
-    cube1.header.stamp = rospy.Time.now()
-    cube1.ns = "wrist_ab_n"
-    cube1.action = 0
-    cube1.type = vel.CUBE
-    cube1.id = 2
-
-    cube1.scale.x = 0.5
-    cube1.scale.y = 0.1
-    cube1.scale.z = 0.1
+    # vel.scale.x = 0.5
+    # vel.scale.y = 0.1
+    # vel.scale.z = 0.1
+    # #
     #
-
-    cube1.color.a = 1
-    cube1.color.r = 0
-    cube1.color.g = 1
-    cube1.color.b = 0
-    cube1.pose.position.x=-1
-    cube1.pose.position.y=wrist_ab_n
-    cube1.pose.position.z=0
+    # vel.color.a = 1
+    # vel.color.r = 0
+    # vel.color.g = 0
+    # vel.color.b = 1
+    # vel.pose.position.x=1
+    # vel.pose.position.y=1
+    # vel.pose.position.z=1
     # vel.pose.orientation=Wrist_quat
-    publisher1.publish(cube1)
+    # publisher.publish(vel)
 
-    publisher1 = rospy.Publisher('wrist_fl_n', Marker)
-    cube2 = Marker()
-    cube2.header.frame_id = "world"
-    cube2.header.stamp = rospy.Time.now()
-    cube2.ns = "wrist_fl_n"
-    cube2.action = 0
-    cube2.type = vel.CUBE
-    cube2.id = 2
 
-    cube2.scale.x = 0.5
-    cube2.scale.y = 0.1
-    cube2.scale.z = 0.1
+
+
+    # publisher1 = rospy.Publisher('wrist_fl_n', Marker)
+    # cube2 = Marker()
+    # cube2.header.frame_id = "world"
+    # cube2.header.stamp = rospy.Time.now()
+    # cube2.ns = "wrist_fl_n"
+    # cube2.action = 0
+    # cube2.type = vel.CUBE
+    # cube2.id = 2
     #
-
-    cube2.color.a = 1
-    cube2.color.r = 1
-    cube2.color.g = 0
-    cube2.color.b = 0
-    cube2.pose.position.x=-1.5
-    cube2.pose.position.y=0.5
-    cube2.pose.position.z=wrist_fl_n
-    # vel.pose.orientation=Wrist_quat
-    publisher1.publish(cube2)
+    # cube2.scale.x = 0.5
+    # cube2.scale.y = 0.1
+    # cube2.scale.z = 0.1
+    # #
+    #
+    # cube2.color.a = 1
+    # cube2.color.r = 1
+    # cube2.color.g = 0
+    # cube2.color.b = 0
+    # cube2.pose.position.x=-1.5
+    # cube2.pose.position.y=0.5
+    # cube2.pose.position.z=wrist_fl_n
+    # # vel.pose.orientation=Wrist_quat
+    # publisher1.publish(cube2)
 
 def main():
     global listener
