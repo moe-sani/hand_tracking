@@ -36,7 +36,7 @@ def transform_to_cf(quat,target_frame):
     return quat_st_cf.quaternion
 
 def append_new_frame(translation,rotation,frame_id,frame_target):
-    pub_tf = rospy.Publisher("/tf", tfMessage)
+    pub_tf = rospy.Publisher("/tf", tfMessage, queue_size=1)
 
     t = TransformStamped()
     t.header.frame_id = frame_id
@@ -108,39 +108,55 @@ def calc_mean_of_buff(offset_buff):
 
 
 class Active_Margining:
-    def __init__(self, rom,name):
+    def __init__(self, rom,name,uniqe_id):
         print("new margining")
-        self.low_margin=1000
-        self.high_margin=-1000
+        self.low_margin=0
+        self.high_margin=0
         self.rom=rom
         self.name=name
+        self.id=uniqe_id
+        self.publisher_margin=rospy.Publisher(self.name, Marker, queue_size=1)
+        self.publisher_angles=rospy.Publisher(self.name + '_angle', Marker, queue_size=1)
+        self.buffer_index=0
+        self.buffer_size=20
+        self.buffer=[0 for i in range(self.buffer_size)]
+        self.buffer_margins=[]
+        self.buffer_margins_index=0
+        self.buffer_margins_size=20
+        self.margin_stiffness=math.radians(0.1)
     def update_margins(self,new_angle):
 
         if new_angle > self.high_margin:
-            self.high_margin = new_angle
+            self.high_margin = self.high_margin+self.margin_stiffness
             self.low_margin = self.high_margin - self.rom
 
         if new_angle < self.low_margin:
-            self.low_margin = new_angle
+            self.low_margin = self.low_margin-self.margin_stiffness
             self.high_margin = self.low_margin + self.rom
 
     def normalize(self,new_angle):
         self.update_margins(new_angle)
-        normalized_angle = abs((new_angle - self.low_margin) / self.rom)  # normalize between 0-1
-        print("sensor rom: {}, high_margin: {}, low margin: {},normalized_angle:{}".format(self.rom,self.high_margin,self.low_margin,normalized_angle))
+        if new_angle<self.low_margin :
+            normalized_angle=0
+        elif new_angle > self.high_margin:
+            normalized_angle=1
+        else:
+            normalized_angle = abs((new_angle - self.low_margin) / self.rom)  # normalize between 0-1
+        print("sensor : {}, high_margin: {}, low margin: {},new_angle:{}, Angle_n:{}".format(self.name,self.high_margin,self.low_margin,new_angle,normalized_angle))
         return normalized_angle
+
     def visulize_margins(self):
-        publisher = rospy.Publisher(self.name, Marker)
         cube = Marker()
         cube.header.frame_id = "world"
         cube.header.stamp = rospy.Time.now()
         cube.ns = "self.name"
         cube.action = 0
         cube.type = cube.CUBE
-        cube.id = 2
+        cube.id = self.id
 
-        cube.scale.x = self.rom/50
+        cube.scale.x = self.rom
         cube.scale.y = 0.1
+        # print("sef.id:",float(self.id) / 10)
         cube.scale.z = 0.1
         #
 
@@ -148,22 +164,23 @@ class Active_Margining:
         cube.color.r = 0
         cube.color.g = 1
         cube.color.b = 0
-        cube.pose.position.x = self.low_margin/100
+        cube.pose.position.x = self.low_margin+self.rom/2
         cube.pose.position.y = 0
-        cube.pose.position.z = 0
+        cube.pose.position.z = float(self.id)/10
         # vel.pose.orientation=Wrist_quat
-        publisher.publish(cube)
+        self.publisher_margin.publish(cube)
+
     def visualize_new_angle(self,new_angle):
-        publisher = rospy.Publisher(self.name+'_angle', Marker)
+
         cube = Marker()
         cube.header.frame_id = "world"
         cube.header.stamp = rospy.Time.now()
         cube.ns = self.name+'_angle'
         cube.action = 0
         cube.type = cube.CUBE
-        cube.id = 2
+        cube.id = self.id
 
-        cube.scale.x = 0.1
+        cube.scale.x = 0.04
         cube.scale.y = 0.1
         cube.scale.z = 0.1
         #
@@ -172,11 +189,30 @@ class Active_Margining:
         cube.color.r = 1
         cube.color.g = 0
         cube.color.b = 0
-        cube.pose.position.x = new_angle/100
+        cube.pose.position.x = new_angle
         cube.pose.position.y = 0
-        cube.pose.position.z = 0
+        cube.pose.position.z = float(self.id)/10
         # vel.pose.orientation=Wrist_quat
-        publisher.publish(cube)
+        self.publisher_angles.publish(cube)
+    def running_average(self,new_angle):
+        self.buffer[self.buffer_index]=new_angle
+        self.buffer_index=self.buffer_index+1
+        if self.buffer_index>=self.buffer_size:
+            self.buffer_index=0
+
+        print("buffer:",self.buffer)
+        print("new_angle: {}, average: {}".format(new_angle,numpy.mean(self.buffer)))
+        return numpy.mean(self.buffer)
+
+    def running_average_margins(self,new_data):
+        self.buffer_margins[self.buffer_margins_index]=new_data
+        self.buffer_margins_index=self.buffer_margins_index+1
+        if self.buffer_margins_index>self.buffer_margins_size:
+            self.buffer_margins_index=0
+
+        return numpy.mean(self.buffer_margins)
+
+
 
 def publish_to_davinci(outer_wrist_pitch,outer_wrist_yaw,jaw):
     pub_joints = rospy.Publisher('/dvrk/PSM2/joint_states', JointState, queue_size=1)
@@ -195,9 +231,9 @@ def publish_to_davinci(outer_wrist_pitch,outer_wrist_yaw,jaw):
     pub_joints.publish(joint_state)
 
 
-wrist_ab_margining=Active_Margining(40,'wrist_ab')
-wrist_fl_margining=Active_Margining(60,'wrist_fl')
-index_fl_margining=Active_Margining(90,'index_fl')
+wrist_ab_margining=Active_Margining(math.radians(40), 'wrist_ab',1)
+wrist_fl_margining=Active_Margining(math.radians(110), 'wrist_fl',2)
+index_fl_margining=Active_Margining(math.radians(90), 'index_fl',3)
 
 def imu_array_callback(imu_pose_array):
     global wrist_ab_margining
@@ -219,11 +255,11 @@ def imu_array_callback(imu_pose_array):
     pub_eu_rel = rospy.Publisher('/pub_eu_rel', Point, queue_size=1)
     euler1 = Point()
     [euler1.x, euler1.y, euler1.z] = euler_from_quaternion([Wrist_quat.x, Wrist_quat.y, Wrist_quat.z, Wrist_quat.w])
-    euler1.x=math.degrees(euler1.x)
-    euler1.y=math.degrees(euler1.y)
-    euler1.z=math.degrees(euler1.z)
+    # euler1.x=math.degrees(euler1.x)
+    # euler1.y=math.degrees(euler1.y)
+    # euler1.z=math.degrees(euler1.z)
     pub_eu_rel.publish(euler1)
-    print("eulers1: x: {}, y: {}, z: {}".format(euler1.x,euler1.y,euler1.z))
+    # print("eulers1: x: {}, y: {}, z: {}".format(euler1.x,euler1.y,euler1.z))
 
     wrist_fl=euler1.x
     wrist_ab=euler1.z
@@ -231,15 +267,18 @@ def imu_array_callback(imu_pose_array):
 
     euler2 = Point()
     [euler2.x, euler2.y, euler2.z] = euler_from_quaternion([Index_MIP_quat.x, Index_MIP_quat.y, Index_MIP_quat.z, Index_MIP_quat.w])
-    euler2.x=math.degrees(euler2.x)
-    euler2.y=math.degrees(euler2.y)
-    euler2.z=math.degrees(euler2.z)
-    print("eulers2: x: {}, y: {}, z: {}".format(euler2.x,euler2.y,euler2.z))
+    # euler2.x=math.degrees(euler2.x)
+    # euler2.y=math.degrees(euler2.y)
+    # euler2.z=math.degrees(euler2.z)
+    # print("eulers2: x: {}, y: {}, z: {}".format(euler2.x,euler2.y,euler2.z))
 
     index_fl=euler2.x
 
 
 
+    # wrist_ab_n=wrist_ab_margining.running_average(wrist_ab)
+    # wrist_fl_n=wrist_fl_margining.running_average(wrist_fl)
+    # index_fl_n=index_fl_margining.running_average(index_fl)
 
     wrist_ab_n=wrist_ab_margining.normalize(wrist_ab)
     wrist_fl_n=wrist_fl_margining.normalize(wrist_fl)
@@ -247,7 +286,12 @@ def imu_array_callback(imu_pose_array):
 
     publish_to_davinci(wrist_ab_n*math.pi-math.pi/2,wrist_fl_n*math.pi-math.pi/2,index_fl_n*math.pi/2)
 
+    wrist_ab_margining.visulize_margins()
+    wrist_fl_margining.visulize_margins()
     index_fl_margining.visulize_margins()
+
+    wrist_ab_margining.visualize_new_angle(wrist_ab)
+    wrist_fl_margining.visualize_new_angle(wrist_fl)
     index_fl_margining.visualize_new_angle(index_fl)
 
     # visualize
