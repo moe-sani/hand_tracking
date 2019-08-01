@@ -100,13 +100,6 @@ def imu_array_store(imu_pose_list):
     offset_buff.append(quaternion_buff)
 
 
-def calc_mean_of_buff(offset_buff):
-    # offset_buff
-    #calculate and return mean
-    return quat_offset_list
-    #substract imu pose list from offset values
-
-
 class Active_Margining:
     def __init__(self, rom,name,uniqe_id):
         print("new margining")
@@ -123,8 +116,15 @@ class Active_Margining:
         self.buffer_margins=[]
         self.buffer_margins_index=0
         self.buffer_margins_size=20
-        self.margin_stiffness=math.radians(0.1)
+        self.margin_stiffness=math.radians(0.014)
+        self.first_round= True
     def update_margins(self,new_angle):
+
+        if self.first_round is True:
+            self.high_margin=new_angle+self.rom/2
+            self.low_margin=self.high_margin-self.rom
+            self.first_round=False
+
 
         if new_angle > self.high_margin:
             self.high_margin = self.high_margin+self.margin_stiffness
@@ -249,6 +249,9 @@ def imu_array_callback(imu_pose_array):
     # now if you want for example Wrist joint, do as follows:
     Wrist_quat=quat_list_cf[sensor_f_list.index('Wrist')]
     Index_MIP_quat=quat_list_cf[sensor_f_list.index('Index_MIP')]
+
+    append_new_frame((+0.2,0,0), (Wrist_quat.x,Wrist_quat.y,Wrist_quat.z,Wrist_quat.w), 'Elbow', 'Wrist_wrt_elbow')
+
     # print("Wrist_quat", Wrist_quat)
 
     # publish euler angle
@@ -284,6 +287,7 @@ def imu_array_callback(imu_pose_array):
     wrist_fl_n=wrist_fl_margining.normalize(wrist_fl)
     index_fl_n=index_fl_margining.normalize(index_fl)
 
+    # publish_to_davinci(wrist_ab_n*math.pi-math.pi/2,wrist_fl_n*math.pi-math.pi/2,0)
     publish_to_davinci(wrist_ab_n*math.pi-math.pi/2,wrist_fl_n*math.pi-math.pi/2,index_fl_n*math.pi/2)
 
     wrist_ab_margining.visulize_margins()
