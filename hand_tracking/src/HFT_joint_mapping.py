@@ -244,13 +244,15 @@ def imu_array_callback(imu_pose_array):
 
     imu_pose_list=imu_pose_array.poses
     publish_all_wrt_world(imu_pose_list)
-    quat_list_cf=transform_all_to_cf(imu_pose_list)
+    # quat_list_cf=transform_all_to_cf(imu_pose_list)
 
     # now if you want for example Wrist joint, do as follows:
-    Wrist_quat=quat_list_cf[sensor_f_list.index('Wrist')]
-    Index_MIP_quat=quat_list_cf[sensor_f_list.index('Index_MIP')]
+    # Wrist_quat=quat_list_cf[sensor_f_list.index('Wrist')]
+    Wrist_pose=imu_pose_list[sensor_f_list.index('Elbow')]
+    Wrist_quat=Wrist_pose.orientation
+    # Index_MIP_quat=quat_list_cf[sensor_f_list.index('Index_MIP')]
 
-    append_new_frame((+0.2,0,0), (Wrist_quat.x,Wrist_quat.y,Wrist_quat.z,Wrist_quat.w), 'Elbow', 'Wrist_wrt_elbow')
+    # append_new_frame((+0.2,0,0), (Wrist_quat.x,Wrist_quat.y,Wrist_quat.z,Wrist_quat.w), 'Elbow', 'Wrist_wrt_elbow')
 
     # print("Wrist_quat", Wrist_quat)
 
@@ -269,7 +271,7 @@ def imu_array_callback(imu_pose_array):
 
 
     euler2 = Point()
-    [euler2.x, euler2.y, euler2.z] = euler_from_quaternion([Index_MIP_quat.x, Index_MIP_quat.y, Index_MIP_quat.z, Index_MIP_quat.w])
+    # [euler2.x, euler2.y, euler2.z] = euler_from_quaternion([Index_MIP_quat.x, Index_MIP_quat.y, Index_MIP_quat.z, Index_MIP_quat.w])
     # euler2.x=math.degrees(euler2.x)
     # euler2.y=math.degrees(euler2.y)
     # euler2.z=math.degrees(euler2.z)
@@ -285,18 +287,18 @@ def imu_array_callback(imu_pose_array):
 
     wrist_ab_n=wrist_ab_margining.normalize(wrist_ab)
     wrist_fl_n=wrist_fl_margining.normalize(wrist_fl)
-    index_fl_n=index_fl_margining.normalize(index_fl)
+    # index_fl_n=index_fl_margining.normalize(index_fl)
 
-    # publish_to_davinci(wrist_ab_n*math.pi-math.pi/2,wrist_fl_n*math.pi-math.pi/2,0)
-    publish_to_davinci(wrist_ab_n*math.pi-math.pi/2,wrist_fl_n*math.pi-math.pi/2,index_fl_n*math.pi/2)
+    publish_to_davinci(wrist_ab_n*math.pi-math.pi/2,wrist_fl_n*math.pi-math.pi/2,0)
+    # publish_to_davinci(wrist_ab_n*math.pi-math.pi/2,wrist_fl_n*math.pi-math.pi/2,index_fl_n*math.pi/2)
 
     wrist_ab_margining.visulize_margins()
     wrist_fl_margining.visulize_margins()
-    index_fl_margining.visulize_margins()
+    # index_fl_margining.visulize_margins()
 
     wrist_ab_margining.visualize_new_angle(wrist_ab)
     wrist_fl_margining.visualize_new_angle(wrist_fl)
-    index_fl_margining.visualize_new_angle(index_fl)
+    # index_fl_margining.visualize_new_angle(index_fl)
 
     # visualize
 

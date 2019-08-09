@@ -132,7 +132,7 @@ def talker():
 		# rospy.loginfo(hello_str)
 
 		line = ser.readline()  # read a '\n' terminated line
-		# print("raw data:{}".format(line))
+		print("raw data:{}".format(line))
 		if len(line)>13:
 			dataj = json.loads(line)
 			# print(dataj)
