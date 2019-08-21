@@ -79,25 +79,38 @@ def publish_all_wrt_world(imu_pose_list):
         append_new_frame((temp_tr[0], temp_tr[1], temp_tr[2]), (pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w),
                          '/world', sensor_f_list[idx])
 
+
 def transform_all_to_cf(imu_pose_list):
     sensor_rf_list = rospy.get_param('/sensor_rf_list')
     quat_list_cf=[]
+    euler_list_cf=[]
     for idx, pose in enumerate(imu_pose_list):
         quat_cf = transform_to_cf(pose.orientation, sensor_rf_list[idx])
         quat_list_cf.append(quat_cf)
-    return quat_list_cf
+
+        euler = Point()
+        [euler.x, euler.y, euler.z] = euler_from_quaternion([quat_cf.x, quat_cf.y, quat_cf.z, quat_cf.w])
+        euler_list_cf.append(euler)
+
+
+    return quat_list_cf,euler_list_cf
 #=====================================================================================
 
+def rad_to_degree(p_rad):
+    p_deg=Point()
+    p_deg.x=math.degrees(p_rad.x)
+    p_deg.y=math.degrees(p_rad.y)
+    p_deg.z=math.degrees(p_rad.z)
+    return p_deg
 
-def imu_array_store(imu_pose_list):
-    global offset_buff
-    #store 100 values
-    quaternion_buff=[]
-    for idx,pose in enumerate(imu_pose_list):
-        # store quaternion values
-        temp_quaternion=[pose.orientation.x,pose.orientation.y,pose.orientation.z,pose.orientation.w]
-        quaternion_buff.append(temp_quaternion)
-    offset_buff.append(quaternion_buff)
+def relative_angle_publisher(euler_list_cf):
+    sensor_f_list = rospy.get_param('/sensor_f_list')
+
+    for i, point in enumerate(euler_list_cf):
+
+        pub=rospy.Publisher('/eu_rl_'+sensor_f_list[i], Point, queue_size=1)
+        pub.publish(rad_to_degree(point))
+        # print("eulers1: x: {}, y: {}, z: {}".format(euler1.x,euler1.y,euler1.z))
 
 
 class Active_Margining:
@@ -247,7 +260,9 @@ def imu_array_callback(imu_pose_array):
 
     imu_pose_list=imu_pose_array.poses
     publish_all_wrt_world(imu_pose_list)
-    quat_list_cf=transform_all_to_cf(imu_pose_list)
+    quat_list_cf, euler_list_cf = transform_all_to_cf(imu_pose_list)
+
+    relative_angle_publisher(euler_list_cf)
 
     # now if you want for example Wrist joint, do as follows:
     Wrist_quat=quat_list_cf[sensor_f_list.index('Wrist')]
@@ -255,9 +270,6 @@ def imu_array_callback(imu_pose_array):
     # Wrist_quat=Wrist_pose.orientation
     # Index_MIP_quat=quat_list_cf[sensor_f_list.index('Index_MIP')]
 
-    # append_new_frame((+0.2,0,0), (Wrist_quat.x,Wrist_quat.y,Wrist_quat.z,Wrist_quat.w), 'Elbow', 'Wrist_wrt_elbow')
-
-    # print("Wrist_quat", Wrist_quat)
 
     # publish euler angle
     pub_eu_rel = rospy.Publisher('/pub_eu_rel', Point, queue_size=1)
