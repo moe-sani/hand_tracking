@@ -60,13 +60,14 @@ class Joints:
 class davinci_tool_joints:
     def __init__(self):
         # print("new ")
-        self.roll=Joints(-math.pi / 2, math.pi / 2, -200000, 200000)
-        self.pitch=Joints(-math.pi / 2, math.pi / 2, -200000, 200000)
-        self.leftjaw=Joints(-math.pi / 2, math.pi / 2, -200000, 200000)
-        self.rightjaw=Joints(-math.pi / 2, math.pi / 2, -200000, 200000)
+        self.roll=Joints(-math.pi / 2, math.pi / 2, -50000, 50000)
+        self.pitch=Joints(-math.pi / 2, math.pi / 2, -50000, 90000)
+        self.leftjaw=Joints(-math.pi / 2, math.pi / 2, -110000, 180000) #left jaw shoulf be bigger than right jaw
+        self.rightjaw=Joints(-math.pi / 2, math.pi / 2, -130000, 160000)
 
         self.pitch_low_margin=self.pitch.angleMin
         self.pitch_rom=self.pitch.angle_range
+        self.jaw_offset=0
 
     def pitch_yaw_mapping(self,yaw,pitch):
         pitch_normalized=abs((pitch - self.pitch_low_margin) / self.pitch_rom)  # normalize between 0-1
@@ -74,8 +75,8 @@ class davinci_tool_joints:
         return yaw_corrected
 
     def calculate_jaw(self,center_of_jaw,jaw):
-        left_jaw=center_of_jaw-jaw
-        right_jaw=center_of_jaw+jaw
+        left_jaw=center_of_jaw+jaw/2
+        right_jaw=center_of_jaw-jaw/2+self.jaw_offset
         return [left_jaw,right_jaw]
 
     def calculate_joints(self, roll, pitch, yaw, jaw):
@@ -100,7 +101,7 @@ class davinci_tool_joints:
 
 def davinci_joint_states_callback(joint_state):
 
-    print(joint_state);
+    print(joint_state)
     joint_dict=dict(zip(joint_state.name,joint_state.position))
 
     joints=davinci_tool_joints()

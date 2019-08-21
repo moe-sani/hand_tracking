@@ -215,17 +215,20 @@ class Active_Margining:
 
 
 def publish_to_davinci(outer_wrist_pitch,outer_wrist_yaw,jaw):
-    pub_joints = rospy.Publisher('/dvrk/PSM2/joint_states', JointState, queue_size=1)
+    # pub_joints = rospy.Publisher('/dvrk/PSM2/joint_states', JointState, queue_size=1)
+    pub_joints = rospy.Publisher('/davinci_joint_states', JointState, queue_size=1)
     joint_state=JointState()
 
     # joint_state.name.append("outer_yaw")
-    joint_state.name = ["outer_yaw", "outer_pitch", "outer_pitch_1", "outer_pitch_2", "outer_pitch_3", "outer_pitch_4",
-  "outer_pitch_5", "outer_insertion", "outer_roll", "outer_wrist_pitch", "outer_wrist_yaw",
-  "jaw", "jaw_mimic_1", "jaw_mimic_2"]
+    # joint_state.name = ["outer_yaw", "outer_pitch", "outer_pitch_1", "outer_pitch_2", "outer_pitch_3", "outer_pitch_4",
+  # "outer_pitch_5", "outer_insertion", "outer_roll", "outer_wrist_pitch", "outer_wrist_yaw",
+  # "jaw", "jaw_mimic_1", "jaw_mimic_2"]
     # jaw: 0-1.57
     # jaw_mimic_1 + jaw_mimic_2 should be equal to jaw
-    joint_state.position=[0.0, 0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,outer_wrist_pitch,outer_wrist_yaw,jaw,jaw/2,jaw/2]
+    # joint_state.position=[0.0, 0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,outer_wrist_pitch,outer_wrist_yaw,jaw,jaw/2,jaw/2]
     # joint_state.header.frame_id = "world"
+    joint_state.name = ["roll","pitch","yaw","jaw"]
+    joint_state.position=[0,-outer_wrist_yaw,-outer_wrist_pitch,jaw]
     joint_state.header.stamp = rospy.Time.now()
     # print('joint_state',joint_state)
     pub_joints.publish(joint_state)
@@ -244,12 +247,12 @@ def imu_array_callback(imu_pose_array):
 
     imu_pose_list=imu_pose_array.poses
     publish_all_wrt_world(imu_pose_list)
-    # quat_list_cf=transform_all_to_cf(imu_pose_list)
+    quat_list_cf=transform_all_to_cf(imu_pose_list)
 
     # now if you want for example Wrist joint, do as follows:
-    # Wrist_quat=quat_list_cf[sensor_f_list.index('Wrist')]
-    Wrist_pose=imu_pose_list[sensor_f_list.index('Elbow')]
-    Wrist_quat=Wrist_pose.orientation
+    Wrist_quat=quat_list_cf[sensor_f_list.index('Wrist')]
+    # Wrist_pose=imu_pose_list[sensor_f_list.index('Elbow')]
+    # Wrist_quat=Wrist_pose.orientation
     # Index_MIP_quat=quat_list_cf[sensor_f_list.index('Index_MIP')]
 
     # append_new_frame((+0.2,0,0), (Wrist_quat.x,Wrist_quat.y,Wrist_quat.z,Wrist_quat.w), 'Elbow', 'Wrist_wrt_elbow')
