@@ -108,7 +108,7 @@ def relative_angle_publisher(euler_list_cf):
 
     for i, point in enumerate(euler_list_cf):
 
-        pub=rospy.Publisher('/eu_rl_'+sensor_f_list[i], Point, queue_size=1)
+        pub=rospy.Publisher('/'+sensor_f_list[i]+'_eu_rl', Point, queue_size=1)
         pub.publish(rad_to_degree(point))
         # print("eulers1: x: {}, y: {}, z: {}".format(euler1.x,euler1.y,euler1.z))
 
@@ -259,7 +259,7 @@ def imu_array_callback(imu_pose_array):
     sensor_f_list = rospy.get_param('/sensor_f_list')
 
     imu_pose_list=imu_pose_array.poses
-    publish_all_wrt_world(imu_pose_list)
+    # publish_all_wrt_world(imu_pose_list)
     quat_list_cf, euler_list_cf = transform_all_to_cf(imu_pose_list)
 
     relative_angle_publisher(euler_list_cf)

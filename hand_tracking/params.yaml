@@ -13,15 +13,20 @@
 # IMPORTANT: The order should be from parent to child
 /jason_stream_lables: ['S8',          'S9',       'S7',             'S6',       'S10',  'S11',      'S5',       'S4',       'S3',         'S2',       'S0',       'S1']
 
-/sensor_rf_list:      ['world',     'Elbow',    'Wrist',            'Wrist',          'Wrist',        'Thumb',          'Thumb_CMC',    'Thumb_MIP',    'Middle_MIP',     'Middle_PIP',    'Index_MIP',  'Index_PIP']
-/sensor_rf_raw_list:  ['Elbow_raw','Wrist_raw',  'Middle_MIP_raw',  'Index_MIP_raw',  'Thumb_raw',    'Thumb_CMC_raw',  'Thumb_MIP_raw','Thumb_DIP_raw','Middle_PIP_raw','IMiddle_DIP_raw','Index_PIP_raw', 'Index_DIP_raw']
-
-/sensor_f_list :      ['Elbow',     'Wrist',    'Middle_MIP',       'Index_MIP',      'Thumb',        'Thumb_CMC',      'Thumb_MIP',    'Thumb_DIP',    'Middle_PIP',     'Middle_DIP',    'Index_PIP',  'Index_DIP']
+#/sensor_rf_list:      ['world',     'Elbow',    'Wrist',            'Wrist',          'Wrist',        'Thumb',          'Thumb_CMC',    'Thumb_MIP',    'Middle_MIP',     'Middle_PIP',    'Index_MIP',  'Index_PIP']
+#/sensor_rf_raw_list:  ['Elbow_raw','Wrist_raw',  'Middle_MIP_raw',  'Index_MIP_raw',  'Thumb_raw',    'Thumb_CMC_raw',  'Thumb_MIP_raw','Thumb_DIP_raw','Middle_PIP_raw','IMiddle_DIP_raw','Index_PIP_raw', 'Index_DIP_raw']
+#/sensor_f_list :      ['Elbow',     'Wrist',    'Middle_MIP',       'Index_MIP',      'Thumb',        'Thumb_CMC',      'Thumb_MIP',    'Thumb_DIP',    'Middle_PIP',     'Middle_DIP',    'Index_PIP',  'Index_DIP']
+/sensor_rf_list:      ['world',     'Elbow',    'Elbow5',            'Elbow',          'Wrist',        'Thumb',          'Thumb_CMC',    'Thumb_MIP',    'Elbow5',     'Middle_PIP',    'Wrist5',  'Index_PIP']
+/sensor_f_list :      ['Elbow',     'Elbow5',    'Wrist5',       'Wrist',      'Thumb',        'Thumb_CMC',      'Thumb_MIP',    'Thumb_DIP',    'Middle_PIP',     'Middle_DIP',    'Index_PIP',  'Index_DIP']
 
 #============ translations wrt world
 
 /hft_tfw/Elbow: [0.5,0.0,0.0]
+/hft_tfw/Elbow5: [0.5,0.0,0.0]
+/hft_tfw/Elbow8: [0.5,0.0,0.0]
 /hft_tfw/Wrist: [0.7,0.0,0.0]
+/hft_tfw/Wrist5: [0.7,0.0,0.0]
+/hft_tfw/Wrist8: [0.7,0.0,0.0]
 
 
 /hft_tfw/Thumb: [0.0,-0.01,0.0]
