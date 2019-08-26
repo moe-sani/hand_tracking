@@ -228,20 +228,20 @@ class Active_Margining:
 
 
 def publish_to_davinci(outer_wrist_pitch,outer_wrist_yaw,jaw):
-    # pub_joints = rospy.Publisher('/dvrk/PSM2/joint_states', JointState, queue_size=1)
-    pub_joints = rospy.Publisher('/davinci_joint_states', JointState, queue_size=1)
+    pub_joints = rospy.Publisher('/dvrk/PSM2/joint_states', JointState, queue_size=1)
+    # pub_joints = rospy.Publisher('/davinci_joint_states', JointState, queue_size=1)
     joint_state=JointState()
 
     # joint_state.name.append("outer_yaw")
-    # joint_state.name = ["outer_yaw", "outer_pitch", "outer_pitch_1", "outer_pitch_2", "outer_pitch_3", "outer_pitch_4",
-  # "outer_pitch_5", "outer_insertion", "outer_roll", "outer_wrist_pitch", "outer_wrist_yaw",
-  # "jaw", "jaw_mimic_1", "jaw_mimic_2"]
+    joint_state.name = ["outer_yaw", "outer_pitch", "outer_pitch_1", "outer_pitch_2", "outer_pitch_3", "outer_pitch_4",
+  "outer_pitch_5", "outer_insertion", "outer_roll", "outer_wrist_pitch", "outer_wrist_yaw",
+  "jaw", "jaw_mimic_1", "jaw_mimic_2"]
     # jaw: 0-1.57
     # jaw_mimic_1 + jaw_mimic_2 should be equal to jaw
-    # joint_state.position=[0.0, 0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,outer_wrist_pitch,outer_wrist_yaw,jaw,jaw/2,jaw/2]
+    joint_state.position=[0.0, 0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,outer_wrist_pitch,outer_wrist_yaw,jaw,jaw/2,jaw/2]
     # joint_state.header.frame_id = "world"
-    joint_state.name = ["roll","pitch","yaw","jaw"]
-    joint_state.position=[0,-outer_wrist_yaw,-outer_wrist_pitch,jaw]
+    # joint_state.name = ["roll","pitch","yaw","jaw"]
+    # joint_state.position=[0,-outer_wrist_yaw,-outer_wrist_pitch,jaw]
     joint_state.header.stamp = rospy.Time.now()
     # print('joint_state',joint_state)
     pub_joints.publish(joint_state)
@@ -259,42 +259,16 @@ def imu_array_callback(imu_pose_array):
     sensor_f_list = rospy.get_param('/sensor_f_list')
 
     imu_pose_list=imu_pose_array.poses
-    # publish_all_wrt_world(imu_pose_list)
+    publish_all_wrt_world(imu_pose_list)
     quat_list_cf, euler_list_cf = transform_all_to_cf(imu_pose_list)
 
     relative_angle_publisher(euler_list_cf)
 
     # now if you want for example Wrist joint, do as follows:
-    Wrist_quat=quat_list_cf[sensor_f_list.index('Wrist')]
-    # Wrist_pose=imu_pose_list[sensor_f_list.index('Elbow')]
-    # Wrist_quat=Wrist_pose.orientation
-    # Index_MIP_quat=quat_list_cf[sensor_f_list.index('Index_MIP')]
+    Wrist_euler=euler_list_cf[sensor_f_list.index('Wrist')]
 
-
-    # publish euler angle
-    pub_eu_rel = rospy.Publisher('/pub_eu_rel', Point, queue_size=1)
-    euler1 = Point()
-    [euler1.x, euler1.y, euler1.z] = euler_from_quaternion([Wrist_quat.x, Wrist_quat.y, Wrist_quat.z, Wrist_quat.w])
-    # euler1.x=math.degrees(euler1.x)
-    # euler1.y=math.degrees(euler1.y)
-    # euler1.z=math.degrees(euler1.z)
-    pub_eu_rel.publish(euler1)
-    # print("eulers1: x: {}, y: {}, z: {}".format(euler1.x,euler1.y,euler1.z))
-
-    wrist_fl=euler1.x
-    wrist_ab=euler1.z
-
-
-    euler2 = Point()
-    # [euler2.x, euler2.y, euler2.z] = euler_from_quaternion([Index_MIP_quat.x, Index_MIP_quat.y, Index_MIP_quat.z, Index_MIP_quat.w])
-    # euler2.x=math.degrees(euler2.x)
-    # euler2.y=math.degrees(euler2.y)
-    # euler2.z=math.degrees(euler2.z)
-    # print("eulers2: x: {}, y: {}, z: {}".format(euler2.x,euler2.y,euler2.z))
-
-    index_fl=euler2.x
-
-
+    wrist_fl=Wrist_euler.x
+    wrist_ab=Wrist_euler.z
 
     # wrist_ab_n=wrist_ab_margining.running_average(wrist_ab)
     # wrist_fl_n=wrist_fl_margining.running_average(wrist_fl)
@@ -314,59 +288,6 @@ def imu_array_callback(imu_pose_array):
     wrist_ab_margining.visualize_new_angle(wrist_ab)
     wrist_fl_margining.visualize_new_angle(wrist_fl)
     # index_fl_margining.visualize_new_angle(index_fl)
-
-    # visualize
-
-    # publisher = rospy.Publisher('Wrist_marker', Marker)
-    # vel = Marker()
-    # vel.header.frame_id = "world"
-    # vel.header.stamp = rospy.Time.now()
-    # vel.ns = "wrist"
-    # vel.action = 0
-    # vel.type = vel.ARROW
-    # vel.id = 1
-    #
-    # vel.scale.x = 0.5
-    # vel.scale.y = 0.1
-    # vel.scale.z = 0.1
-    # #
-    #
-    # vel.color.a = 1
-    # vel.color.r = 0
-    # vel.color.g = 0
-    # vel.color.b = 1
-    # vel.pose.position.x=1
-    # vel.pose.position.y=1
-    # vel.pose.position.z=1
-    # vel.pose.orientation=Wrist_quat
-    # publisher.publish(vel)
-
-
-
-
-    # publisher1 = rospy.Publisher('wrist_fl_n', Marker)
-    # cube2 = Marker()
-    # cube2.header.frame_id = "world"
-    # cube2.header.stamp = rospy.Time.now()
-    # cube2.ns = "wrist_fl_n"
-    # cube2.action = 0
-    # cube2.type = vel.CUBE
-    # cube2.id = 2
-    #
-    # cube2.scale.x = 0.5
-    # cube2.scale.y = 0.1
-    # cube2.scale.z = 0.1
-    # #
-    #
-    # cube2.color.a = 1
-    # cube2.color.r = 1
-    # cube2.color.g = 0
-    # cube2.color.b = 0
-    # cube2.pose.position.x=-1.5
-    # cube2.pose.position.y=0.5
-    # cube2.pose.position.z=wrist_fl_n
-    # # vel.pose.orientation=Wrist_quat
-    # publisher1.publish(cube2)
 
 def main():
     global listener
