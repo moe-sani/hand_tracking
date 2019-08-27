@@ -26,74 +26,9 @@ offset_buff=[]
 global listener
 change=0
 
-def transform_to_cf(quat,target_frame):
-    global listener
-    quat_st_wf = QuaternionStamped()
-    quat_st_wf.header.frame_id = '/world'
-    quat_st_wf.quaternion = quat
-
-    quat_st_cf = listener.transformQuaternion(target_frame, quat_st_wf)
-    return quat_st_cf.quaternion
-
-def append_new_frame(translation,rotation,frame_id,frame_target):
-    pub_tf = rospy.Publisher("/tf", tfMessage, queue_size=1)
-
-    t = TransformStamped()
-    t.header.frame_id = frame_id
-    t.header.stamp = rospy.Time.now()
-    t.child_frame_id = frame_target
-    t.transform.translation.x = translation[0]
-    t.transform.translation.y = translation[1]
-    t.transform.translation.z = translation[2]
-
-    t.transform.rotation.x = rotation[0]
-    t.transform.rotation.y = rotation[1]
-    t.transform.rotation.z = rotation[2]
-    t.transform.rotation.w = rotation[3]
-    tfm = tfMessage([t])
-    pub_tf.publish(tfm)
-
-def build_tf_tree(imu_pose_list,imu_offset_list):
-    sensor_f_list = rospy.get_param('/sensor_f_list')
-    sensor_rf_list = rospy.get_param('/sensor_rf_list')
-    sensor_rf_raw_list = rospy.get_param('/sensor_rf_raw_list')
-    hft_tf_translations = rospy.get_param('/hft_tf')
-    for idx,(pose, pose_offset) in enumerate(zip(imu_pose_list, imu_offset_list)):
-        # STEP3: transform pose_offset to [frame]
-        quat_offset_cf = transform_to_cf(pose_offset.orientation, sensor_rf_list[idx])
-        # STEP4: append new frame
-        temp_tr = hft_tf_translations[sensor_f_list[idx]]
-        append_new_frame((temp_tr[0], temp_tr[1], temp_tr[2]), (quat_offset_cf.x, quat_offset_cf.y, quat_offset_cf.z, -quat_offset_cf.w),
-                         sensor_rf_list[idx], sensor_rf_raw_list[idx])
-        # STEP1: tranform the quaternions to correct frame:
-        quat_cf=transform_to_cf(pose.orientation, sensor_rf_list[idx])
-        # STEP2: append new frame: which is called frame-raw; (it has trans +rot but not offsets)
-        append_new_frame((0, 0, 0), (quat_cf.x, quat_cf.y, quat_cf.z, quat_cf.w),
-                         sensor_rf_raw_list[idx], sensor_f_list[idx])
-
-def publish_all_wrt_world(imu_pose_list):
-    sensor_f_list = rospy.get_param('/sensor_f_list')
-    hft_tf_translations = rospy.get_param('/hft_tfw')
-    for idx, pose in enumerate(imu_pose_list):
-        temp_tr = hft_tf_translations[sensor_f_list[idx]]
-        append_new_frame((temp_tr[0], temp_tr[1], temp_tr[2]), (pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w),
-                         '/world', sensor_f_list[idx])
 
 
-def transform_all_to_cf(imu_pose_list):
-    sensor_rf_list = rospy.get_param('/sensor_rf_list')
-    quat_list_cf=[]
-    euler_list_cf=[]
-    for idx, pose in enumerate(imu_pose_list):
-        quat_cf = transform_to_cf(pose.orientation, sensor_rf_list[idx])
-        quat_list_cf.append(quat_cf)
 
-        euler = Point()
-        [euler.x, euler.y, euler.z] = euler_from_quaternion([quat_cf.x, quat_cf.y, quat_cf.z, quat_cf.w])
-        euler_list_cf.append(euler)
-
-
-    return quat_list_cf,euler_list_cf
 #=====================================================================================
 
 def rad_to_degree(p_rad):
@@ -102,15 +37,6 @@ def rad_to_degree(p_rad):
     p_deg.y=math.degrees(p_rad.y)
     p_deg.z=math.degrees(p_rad.z)
     return p_deg
-
-def relative_angle_publisher(euler_list_cf):
-    sensor_f_list = rospy.get_param('/sensor_f_list')
-
-    for i, point in enumerate(euler_list_cf):
-
-        pub=rospy.Publisher('/'+sensor_f_list[i]+'_eu_rl', Point, queue_size=1)
-        pub.publish(rad_to_degree(point))
-        # print("eulers1: x: {}, y: {}, z: {}".format(euler1.x,euler1.y,euler1.z))
 
 
 class Active_Margining:
@@ -251,22 +177,19 @@ wrist_ab_margining=Active_Margining(math.radians(40), 'wrist_ab',1)
 wrist_fl_margining=Active_Margining(math.radians(110), 'wrist_fl',2)
 index_fl_margining=Active_Margining(math.radians(90), 'index_fl',3)
 
-def imu_array_callback(imu_pose_array):
+def joints_array_callback(joints_array):
     global wrist_ab_margining
     global wrist_fl_margining
     global index_fl_margining
     # rospy.loginfo("HFT_joint_mapping")
     sensor_f_list = rospy.get_param('/sensor_f_list')
 
-    imu_pose_list=imu_pose_array.poses
-    publish_all_wrt_world(imu_pose_list)
-    quat_list_cf, euler_list_cf = transform_all_to_cf(imu_pose_list)
+    joints_list=joints_array.poses
 
-    relative_angle_publisher(euler_list_cf)
 
     # now if you want for example Wrist joint, do as follows:
-    Wrist_euler=euler_list_cf[sensor_f_list.index('Wrist')]
-
+    Wrist_euler=joints_list[sensor_f_list.index('Wrist')].position
+    print(Wrist_euler)
     wrist_fl=Wrist_euler.x
     wrist_ab=Wrist_euler.z
 
@@ -292,7 +215,7 @@ def imu_array_callback(imu_pose_array):
 def main():
     global listener
     rospy.init_node('hand_joint_mapping', anonymous=True)
-    rospy.Subscriber("/imu_pub_array", PoseArray, imu_array_callback, queue_size=10)
+    rospy.Subscriber("/joints_array", PoseArray, joints_array_callback, queue_size=10)
     listener = tf.TransformListener()
     # rate = rospy.Rate(100)  # 10hz
     # while not rospy.is_shutdown():

@@ -124,7 +124,7 @@ def serial_parser():
 		# rospy.loginfo(hello_str)
 
 		line = ser.readline()  # read a '\n' terminated line
-		print("raw data:{}".format(line))
+		# print("raw data:{}".format(line))
 		if len(line)>13:
 			dataj = json.loads(line)
 			# print(dataj)
@@ -136,7 +136,8 @@ def serial_parser():
 				pub_SC.publish(sc_data)
 
 			if 'S0' in dataj:
-
+				print('data:')
+				print(dataj)
 				imu_array=PoseArray()
 				imu_array.header.stamp = rospy.get_rostime()
 				imu_array.header.frame_id='/world'
@@ -149,7 +150,8 @@ def serial_parser():
 				# sensor_data_publisher(euler_list)
 
 			elif 'C8' in dataj:
-				print("calibration", dataj)
+				# print("calibration", dataj)
+				pass
 
 
 		rate.sleep()

@@ -33,7 +33,7 @@ def transform_to_cf(quat,target_frame):
     return quat_st_cf.quaternion
 
 def append_new_frame(translation,rotation,frame_id,frame_target):
-    pub_tf = rospy.Publisher("/tf", tfMessage)
+    pub_tf = rospy.Publisher("/tf", tfMessage, queue_size=1)
 
     t = TransformStamped()
     t.header.frame_id = frame_id
@@ -68,10 +68,34 @@ def build_tf_tree(imu_pose_list,imu_offset_list):
         append_new_frame((0, 0, 0), (quat_cf.x, quat_cf.y, quat_cf.z, quat_cf.w),
                          sensor_rf_raw_list[idx], sensor_f_list[idx])
 
+def publish_all_wrt_world(imu_pose_list):
+    sensor_f_list = rospy.get_param('/sensor_f_list')
+    hft_tf_translations = rospy.get_param('/hft_tfw')
+    for idx, pose in enumerate(imu_pose_list):
+        temp_tr = hft_tf_translations[sensor_f_list[idx]]
+        append_new_frame((temp_tr[0], temp_tr[1], temp_tr[2]), (pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w),
+                         '/world', sensor_f_list[idx])
 
 
 
 #=====================================================================================
+
+def rad_to_degree(p_rad):
+    p_deg=Point()
+    p_deg.x=math.degrees(p_rad.x)
+    p_deg.y=math.degrees(p_rad.y)
+    p_deg.z=math.degrees(p_rad.z)
+    return p_deg
+
+def relative_angle_publisher(euler_list_cf):
+    sensor_f_list = rospy.get_param('/sensor_f_list')
+
+    for i, point in enumerate(euler_list_cf):
+
+        pub=rospy.Publisher('/'+sensor_f_list[i]+'_eu_rl', Point, queue_size=1)
+        pub.publish(rad_to_degree(point))
+        # print("eulers1: x: {}, y: {}, z: {}".format(euler1.x,euler1.y,euler1.z))
+
 
 def brodcast_tf_now(br,traslation,orientaion,frame_id,refrence_frame):
     br.sendTransform(traslation,
