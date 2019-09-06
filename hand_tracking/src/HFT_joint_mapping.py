@@ -42,8 +42,8 @@ def rad_to_degree(p_rad):
 class Active_Margining:
     def __init__(self, rom,name,uniqe_id):
         print("new margining")
-        self.low_margin=0
-        self.high_margin=0
+        self.low_margin = 100
+        self.high_margin = -100
         self.rom=rom
         self.name=name
         self.id=uniqe_id
@@ -57,6 +57,10 @@ class Active_Margining:
         self.buffer_margins_size=20
         self.margin_stiffness=math.radians(0.014)
         self.first_round= True
+        self.energy_tank=0
+        self.coeff=0.01
+        self.previous_angle=0
+        self.max_step=0.01
     def update_margins(self,new_angle):
 
         if self.first_round is True:
@@ -73,15 +77,27 @@ class Active_Margining:
             self.low_margin = self.low_margin-self.margin_stiffness
             self.high_margin = self.low_margin + self.rom
 
+    def calibration(self, new_angle):
+        '''
+        this func will run to find min and max of the motion, find the range and set the initial angle to its middle.
+        :return:
+        '''
+        if new_angle > self.high_margin:
+            self.high_margin = new_angle
+        if new_angle < self.low_margin:
+            self.low_margin = new_angle
+
+        self.rom = abs(self.high_margin - self.low_margin)
+
     def normalize(self,new_angle):
-        self.update_margins(new_angle)
+        # self.update_margins(new_angle)
         if new_angle<self.low_margin :
             normalized_angle=0
         elif new_angle > self.high_margin:
             normalized_angle=1
         else:
             normalized_angle = abs((new_angle - self.low_margin) / self.rom)  # normalize between 0-1
-        print("sensor : {}, high_margin: {}, low margin: {},new_angle:{}, Angle_n:{}".format(self.name,self.high_margin,self.low_margin,new_angle,normalized_angle))
+        # print("sensor : {}, high_margin: {}, low margin: {},new_angle:{}, Angle_n:{}".format(self.name,self.high_margin,self.low_margin,new_angle,normalized_angle))
         return normalized_angle
 
     def visulize_margins(self):
@@ -151,23 +167,49 @@ class Active_Margining:
 
         return numpy.mean(self.buffer_margins)
 
+    def passivity(self,normalized_angle):
+        angle=normalized_angle-0.5
+
+        self.energy_tank=self.energy_tank+self.coeff*angle
+
+        if self.energy_tank > 1:
+            self.energy_tank=1
+
+        if self.energy_tank < 0:
+            self.energy_tank = 0
+
+        print("sensor : {}, angle:{},  normalized_angle:{}, energy_tank:{} ".format(self.name, angle, normalized_angle, self.energy_tank))
+        return self.energy_tank
+
+    def speed_limit(self, new_anle):
+        if abs(new_anle - self.previous_angle) > self.max_step :
+            if new_anle > self.previous_angle:
+                output_angle=self.previous_angle + self.max_step
+            else:
+                output_angle=self.previous_angle - self.max_step
+            print("sensor : {}, new_anle:{}, step:{} ".format(self.name, new_anle, (new_anle-self.previous_angle)))
+        else:
+            output_angle=new_anle
+        self.previous_angle=output_angle
+        return output_angle
+
 
 
 def publish_to_davinci(outer_wrist_pitch,outer_wrist_yaw,jaw):
-    pub_joints = rospy.Publisher('/dvrk/PSM2/joint_states', JointState, queue_size=1)
-    # pub_joints = rospy.Publisher('/davinci_joint_states', JointState, queue_size=1)
+    # pub_joints = rospy.Publisher('/dvrk/PSM2/joint_states', JointState, queue_size=1)
+    pub_joints = rospy.Publisher('/davinci_joint_states', JointState, queue_size=1)
     joint_state=JointState()
 
     # joint_state.name.append("outer_yaw")
-    joint_state.name = ["outer_yaw", "outer_pitch", "outer_pitch_1", "outer_pitch_2", "outer_pitch_3", "outer_pitch_4",
-  "outer_pitch_5", "outer_insertion", "outer_roll", "outer_wrist_pitch", "outer_wrist_yaw",
-  "jaw", "jaw_mimic_1", "jaw_mimic_2"]
+    # joint_state.name = ["outer_yaw", "outer_pitch", "outer_pitch_1", "outer_pitch_2", "outer_pitch_3", "outer_pitch_4",
+  # "outer_pitch_5", "outer_insertion", "outer_roll", "outer_wrist_pitch", "outer_wrist_yaw",
+  # "jaw", "jaw_mimic_1", "jaw_mimic_2"]
     # jaw: 0-1.57
     # jaw_mimic_1 + jaw_mimic_2 should be equal to jaw
-    joint_state.position=[0.0, 0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,outer_wrist_pitch,outer_wrist_yaw,jaw,jaw/2,jaw/2]
-    # joint_state.header.frame_id = "world"
-    # joint_state.name = ["roll","pitch","yaw","jaw"]
-    # joint_state.position=[0,-outer_wrist_yaw,-outer_wrist_pitch,jaw]
+    # joint_state.position=[0.0, 0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,outer_wrist_pitch,outer_wrist_yaw,jaw,jaw/2,jaw/2]
+    joint_state.header.frame_id = "world"
+    joint_state.name = ["roll","pitch","yaw","jaw"]
+    joint_state.position=[0,-outer_wrist_yaw,-outer_wrist_pitch,jaw]
     joint_state.header.stamp = rospy.Time.now()
     # print('joint_state',joint_state)
     pub_joints.publish(joint_state)
@@ -176,11 +218,12 @@ def publish_to_davinci(outer_wrist_pitch,outer_wrist_yaw,jaw):
 wrist_ab_margining=Active_Margining(math.radians(40), 'wrist_ab',1)
 wrist_fl_margining=Active_Margining(math.radians(110), 'wrist_fl',2)
 index_fl_margining=Active_Margining(math.radians(90), 'index_fl',3)
-
+counter_calib=0
 def joints_array_callback(joints_array):
     global wrist_ab_margining
     global wrist_fl_margining
     global index_fl_margining
+    global counter_calib
     # rospy.loginfo("HFT_joint_mapping")
     sensor_f_list = rospy.get_param('/sensor_f_list')
 
@@ -189,20 +232,28 @@ def joints_array_callback(joints_array):
 
     # now if you want for example Wrist joint, do as follows:
     Wrist_euler=joints_list[sensor_f_list.index('Wrist')].position
-    print(Wrist_euler)
+    # print(Wrist_euler)
     wrist_fl=Wrist_euler.x
     wrist_ab=Wrist_euler.z
 
     # wrist_ab_n=wrist_ab_margining.running_average(wrist_ab)
     # wrist_fl_n=wrist_fl_margining.running_average(wrist_fl)
     # index_fl_n=index_fl_margining.running_average(index_fl)
+    if counter_calib > 1000:
+        wrist_ab_n=wrist_ab_margining.normalize(wrist_ab)
+        wrist_fl_n=wrist_fl_margining.normalize(wrist_fl)
+        # index_fl_n=index_fl_margining.normalize(index_fl)
+        wrist_ab_n_p=wrist_ab_margining.speed_limit(wrist_ab_n)
+        wrist_fl_n_p=wrist_fl_margining.speed_limit(wrist_fl_n)
 
-    wrist_ab_n=wrist_ab_margining.normalize(wrist_ab)
-    wrist_fl_n=wrist_fl_margining.normalize(wrist_fl)
-    # index_fl_n=index_fl_margining.normalize(index_fl)
+        publish_to_davinci(wrist_ab_n_p*math.pi-math.pi/2,wrist_fl_n_p*math.pi-math.pi/2,0)
+        # publish_to_davinci(wrist_ab_n*math.pi-math.pi/2,wrist_fl_n*math.pi-math.pi/2,index_fl_n*math.pi/2)
+    else:
+        counter_calib = counter_calib+1
+        print('Please move angles to their limits...(0 to 1000) now:{}'.format(counter_calib))
+        wrist_ab_margining.calibration(wrist_ab)
+        wrist_fl_margining.calibration(wrist_fl)
 
-    publish_to_davinci(wrist_ab_n*math.pi-math.pi/2,wrist_fl_n*math.pi-math.pi/2,0)
-    # publish_to_davinci(wrist_ab_n*math.pi-math.pi/2,wrist_fl_n*math.pi-math.pi/2,index_fl_n*math.pi/2)
 
     wrist_ab_margining.visulize_margins()
     wrist_fl_margining.visulize_margins()

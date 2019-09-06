@@ -122,15 +122,27 @@ def joints_array_publisher(lst_q_joints,lst_p_joints):
     joints_array.poses=lst_pose
     pub_joints.publish(joints_array)
 
+def joints_publisher(lst_p_joints):
+    sensor_f_list = rospy.get_param('/sensor_f_list')
+    for i, point in enumerate(lst_p_joints):
+        pub=rospy.Publisher('/joint_'+sensor_f_list[i], Point, queue_size=1)
+        pub.publish(rad_to_degree(point))
 
+def raw_data_publisher(imu_pose_list):
+    jason_stream_lables = rospy.get_param('/jason_stream_lables')
+    # publisher_list = []
+    for i, pose in enumerate(imu_pose_list):
+        pub=rospy.Publisher('/imu_'+jason_stream_lables[i], Point, queue_size=1)
+        pub.publish(rad_to_degree(pose.position))
 
 def imu_array_callback(imu_pose_array):
     imu_pose_list=imu_pose_array.poses
+    raw_data_publisher(imu_pose_list)
     publish_all_wrt_world(imu_pose_list)
     quat_list_cf, euler_list_cf = transform_all_to_cf(imu_pose_list)
     rospy.loginfo('publishing joint angles ...')
     joints_array_publisher(quat_list_cf,euler_list_cf)
-
+    joints_publisher(euler_list_cf)
 
 def main():
     global listener

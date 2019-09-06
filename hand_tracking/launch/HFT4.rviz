@@ -8,6 +8,7 @@ Panels:
         - /Status1
         - /RobotModel1/Status1
         - /Marker6/Namespaces1
+        - /TF2
         - /TF2/Frames1
       Splitter Ratio: 0.5
     Tree Height: 719
@@ -175,7 +176,7 @@ Visualization Manager:
       Marker Topic: /index_fl
       Name: Marker
       Namespaces:
-        self.name: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -183,7 +184,7 @@ Visualization Manager:
       Marker Topic: /index_fl_angle
       Name: Marker
       Namespaces:
-        index_fl_angle: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -191,7 +192,7 @@ Visualization Manager:
       Marker Topic: /wrist_ab
       Name: Marker
       Namespaces:
-        self.name: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -199,7 +200,7 @@ Visualization Manager:
       Marker Topic: /wrist_ab_angle
       Name: Marker
       Namespaces:
-        wrist_ab_angle: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -207,7 +208,7 @@ Visualization Manager:
       Marker Topic: /wrist_fl
       Name: Marker
       Namespaces:
-        self.name: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -215,7 +216,7 @@ Visualization Manager:
       Marker Topic: /wrist_fl_angle
       Name: Marker
       Namespaces:
-        wrist_fl_angle: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/TF
@@ -225,15 +226,13 @@ Visualization Manager:
         All Enabled: false
         Elbow:
           Value: true
+        Elbow5:
+          Value: true
         Index_DIP:
           Value: false
-        Index_MIP:
-          Value: true
         Index_PIP:
           Value: false
         Middle_DIP:
-          Value: false
-        Middle_MIP:
           Value: false
         Middle_PIP:
           Value: false
@@ -281,26 +280,26 @@ Visualization Manager:
           Value: false
         Wrist:
           Value: true
+        Wrist5:
+          Value: true
         world:
           Value: true
       Marker Scale: 1
       Name: TF
-      Show Arrows: true
+      Show Arrows: false
       Show Axes: true
       Show Names: true
       Tree:
         world:
           Elbow:
             {}
-          Index_DIP:
+          Elbow5:
             {}
-          Index_MIP:
+          Index_DIP:
             {}
           Index_PIP:
             {}
           Middle_DIP:
-            {}
-          Middle_MIP:
             {}
           Middle_PIP:
             {}
@@ -337,6 +336,8 @@ Visualization Manager:
           Thumb_MIP:
             {}
           Wrist:
+            {}
+          Wrist5:
             {}
       Update Interval: 0
       Value: true
@@ -380,10 +381,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.155398011
+      Pitch: 0.12539798
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 4.99357796
+      Yaw: 4.67856741
     Saved: ~
 Window Geometry:
   Displays:
