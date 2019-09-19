@@ -61,9 +61,9 @@ class davinci_tool_joints:
     def __init__(self):
         # print("new ")
         self.roll=Joints(-math.pi / 2, math.pi / 2, -50000, 50000)
-        self.pitch=Joints(-math.pi / 2, math.pi / 2, -50000, 90000)
-        self.leftjaw=Joints(-math.pi / 2, math.pi / 2, -110000, 180000) #left jaw shoulf be bigger than right jaw
-        self.rightjaw=Joints(-math.pi / 2, math.pi / 2, -130000, 160000)
+        self.pitch=Joints(-math.pi / 2, math.pi / 2, -80000, 80000)
+        self.leftjaw=Joints(-math.pi / 2, math.pi / 2, -100000, 110000) #left jaw shoulf be bigger than right jaw
+        self.rightjaw=Joints(-math.pi / 2, math.pi / 2, -110000, 100000)
 
         self.pitch_low_margin=self.pitch.angleMin
         self.pitch_rom=self.pitch.angle_range

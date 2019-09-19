@@ -95,7 +95,7 @@ def serial_parser():
 				# print("extract_pose_list(dataj):=======================================")
 				# print(extract_pose_list(dataj))
 			elif 'C8' in dataj:
-				# print("calibration", dataj)
+				print("calibration", dataj)
 				pass
 		rate.sleep()
 

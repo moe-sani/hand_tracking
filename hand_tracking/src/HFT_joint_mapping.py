@@ -60,7 +60,7 @@ class Active_Margining:
         self.energy_tank=0
         self.coeff=0.01
         self.previous_angle=0
-        self.max_step=0.01
+        self.max_step=0.02
     def update_margins(self,new_angle):
 
         if self.first_round is True:
@@ -195,12 +195,12 @@ class Active_Margining:
 
 
 
-def publish_to_davinci(outer_wrist_pitch,outer_wrist_yaw,jaw):
+def publish_to_davinci(elbow_roll,outer_wrist_pitch,outer_wrist_yaw,jaw):
     # pub_joints = rospy.Publisher('/dvrk/PSM2/joint_states', JointState, queue_size=1)
     pub_joints = rospy.Publisher('/davinci_joint_states', JointState, queue_size=1)
     joint_state=JointState()
 
-    # joint_state.name.append("outer_yaw")
+
     # joint_state.name = ["outer_yaw", "outer_pitch", "outer_pitch_1", "outer_pitch_2", "outer_pitch_3", "outer_pitch_4",
   # "outer_pitch_5", "outer_insertion", "outer_roll", "outer_wrist_pitch", "outer_wrist_yaw",
   # "jaw", "jaw_mimic_1", "jaw_mimic_2"]
@@ -209,17 +209,19 @@ def publish_to_davinci(outer_wrist_pitch,outer_wrist_yaw,jaw):
     # joint_state.position=[0.0, 0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,outer_wrist_pitch,outer_wrist_yaw,jaw,jaw/2,jaw/2]
     joint_state.header.frame_id = "world"
     joint_state.name = ["roll","pitch","yaw","jaw"]
-    joint_state.position=[0,-outer_wrist_yaw,-outer_wrist_pitch,jaw]
+    joint_state.position=[elbow_roll,-outer_wrist_yaw,-outer_wrist_pitch,jaw]
     joint_state.header.stamp = rospy.Time.now()
     # print('joint_state',joint_state)
     pub_joints.publish(joint_state)
 
-
-wrist_ab_margining=Active_Margining(math.radians(40), 'wrist_ab',1)
-wrist_fl_margining=Active_Margining(math.radians(110), 'wrist_fl',2)
-index_fl_margining=Active_Margining(math.radians(90), 'index_fl',3)
+elbow_roll_margining=Active_Margining(math.radians(120), 'elbow_roll',1)
+wrist_ab_margining=Active_Margining(math.radians(40), 'wrist_ab',2)
+wrist_fl_margining=Active_Margining(math.radians(110), 'wrist_fl',3)
+index_fl_margining=Active_Margining(math.radians(90), 'index_fl',4)
 counter_calib=0
+
 def joints_array_callback(joints_array):
+    global elbow_roll_margining
     global wrist_ab_margining
     global wrist_fl_margining
     global index_fl_margining
@@ -231,37 +233,47 @@ def joints_array_callback(joints_array):
 
 
     # now if you want for example Wrist joint, do as follows:
+    Elbow_euler = joints_list[sensor_f_list.index('Elbow')].position
     Wrist_euler=joints_list[sensor_f_list.index('Wrist')].position
+    index_middle_euler=joints_list[sensor_f_list.index('Index_MIP')].position
     # print(Wrist_euler)
+    elbow_roll=Elbow_euler.y
     wrist_fl=Wrist_euler.x
     wrist_ab=Wrist_euler.z
-
+    index_ab=index_middle_euler.z
     # wrist_ab_n=wrist_ab_margining.running_average(wrist_ab)
     # wrist_fl_n=wrist_fl_margining.running_average(wrist_fl)
     # index_fl_n=index_fl_margining.running_average(index_fl)
     if counter_calib > 1000:
+        elbow_roll_n=elbow_roll_margining.normalize(elbow_roll)
         wrist_ab_n=wrist_ab_margining.normalize(wrist_ab)
         wrist_fl_n=wrist_fl_margining.normalize(wrist_fl)
-        # index_fl_n=index_fl_margining.normalize(index_fl)
+        index_ab_n=index_fl_margining.normalize(index_ab)
+
+        elbow_roll_n_p=elbow_roll_margining.speed_limit(elbow_roll_n)
         wrist_ab_n_p=wrist_ab_margining.speed_limit(wrist_ab_n)
         wrist_fl_n_p=wrist_fl_margining.speed_limit(wrist_fl_n)
+        index_ab_n_p=index_fl_margining.speed_limit(index_ab_n)
 
-        publish_to_davinci(wrist_ab_n_p*math.pi-math.pi/2,wrist_fl_n_p*math.pi-math.pi/2,0)
-        # publish_to_davinci(wrist_ab_n*math.pi-math.pi/2,wrist_fl_n*math.pi-math.pi/2,index_fl_n*math.pi/2)
+        publish_to_davinci(elbow_roll_n_p*math.pi-math.pi/2,-(wrist_ab_n_p*math.pi-math.pi/2),-(wrist_fl_n_p*math.pi-math.pi/2), index_ab_n_p*math.pi/2)
+        # publish_to_davinci(wrist_ab_n*math.pi-math.pi/2,wrist_fl_n*math.pi-math.pi/2,index_ab_n*math.pi/2)
     else:
         counter_calib = counter_calib+1
         print('Please move angles to their limits...(0 to 1000) now:{}'.format(counter_calib))
+        elbow_roll_margining.calibration(elbow_roll)
         wrist_ab_margining.calibration(wrist_ab)
         wrist_fl_margining.calibration(wrist_fl)
+        index_fl_margining.calibration(index_ab)
 
-
+    elbow_roll_margining.visulize_margins()
     wrist_ab_margining.visulize_margins()
     wrist_fl_margining.visulize_margins()
-    # index_fl_margining.visulize_margins()
+    index_fl_margining.visulize_margins()
 
+    elbow_roll_margining.visualize_new_angle(elbow_roll)
     wrist_ab_margining.visualize_new_angle(wrist_ab)
     wrist_fl_margining.visualize_new_angle(wrist_fl)
-    # index_fl_margining.visualize_new_angle(index_fl)
+    index_fl_margining.visualize_new_angle(index_ab)
 
 def main():
     global listener
