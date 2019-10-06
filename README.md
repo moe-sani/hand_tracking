@@ -1,5 +1,5 @@
 # Hand Tracking
-This is a ROS package that recieves data from Hand Tracking Board and extracts joint angles, and finally maps them to the joints in shadow_robot's hand.
+This is a ROS package that recieves data from Hand Tracking Board and extracts joint angles, and finally maps them to the joints in davinci tool.
 
 ## Run
 First we should run ROS core:
@@ -8,8 +8,9 @@ First we should run ROS core:
 
 
 ## load parameters
+navigate to the source folder and:
 
-    rosparam load ~/pycharm-ws/src/hand_tracking/hand_tracking/params.yaml
+    rosparam load params.yaml
     
     
 ## Running the raw sensor data publisher node
