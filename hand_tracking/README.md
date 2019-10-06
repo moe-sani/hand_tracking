@@ -80,14 +80,14 @@ data: [0.0, 0.0, 0.0, 0.0, 1.0]"
 
 Write this to test:
 
-    rostopic pub /davinci_joint_states sensor_msgs/JointState "header:
-      seq: 0
-      stamp: {secs: 0, nsecs: 0}
-      frame_id: ''
-    name: ['roll','pitch','yaw','jaw']
-    position: [0,0,0,0]
-    velocity: [0]
-    effort: [0]" -r 100
+rostopic pub /davinci_joint_states sensor_msgs/JointState "header:
+  seq: 0
+  stamp: {secs: 0, nsecs: 0}
+  frame_id: ''
+name: ['roll','pitch','yaw','jaw']
+position: [0,0,0,0]
+velocity: [0]
+effort: [0]" -r 100
 
 
 

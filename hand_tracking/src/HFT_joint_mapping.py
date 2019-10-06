@@ -187,7 +187,7 @@ class Active_Margining:
                 output_angle=self.previous_angle + self.max_step
             else:
                 output_angle=self.previous_angle - self.max_step
-            print("sensor : {}, new_anle:{}, step:{} ".format(self.name, new_anle, (new_anle-self.previous_angle)))
+            # print("sensor : {}, new_anle:{}, step:{} ".format(self.name, new_anle, (new_anle-self.previous_angle)))
         else:
             output_angle=new_anle
         self.previous_angle=output_angle
@@ -211,7 +211,7 @@ def publish_to_davinci(elbow_roll,outer_wrist_pitch,outer_wrist_yaw,jaw):
     joint_state.name = ["roll","pitch","yaw","jaw"]
     joint_state.position=[elbow_roll,-outer_wrist_yaw,-outer_wrist_pitch,jaw]
     joint_state.header.stamp = rospy.Time.now()
-    # print('joint_state',joint_state)
+    print('roll:{} ,pitch:{} ,yaw:{} ,jaw:{} '.format(elbow_roll,outer_wrist_pitch,outer_wrist_yaw,jaw))
     pub_joints.publish(joint_state)
 
 elbow_roll_margining=Active_Margining(math.radians(120), 'elbow_roll',1)
@@ -241,6 +241,7 @@ def joints_array_callback(joints_array):
     wrist_fl=Wrist_euler.x
     wrist_ab=Wrist_euler.z
     index_ab=index_middle_euler.z
+
     # wrist_ab_n=wrist_ab_margining.running_average(wrist_ab)
     # wrist_fl_n=wrist_fl_margining.running_average(wrist_fl)
     # index_fl_n=index_fl_margining.running_average(index_fl)
