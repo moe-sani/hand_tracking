@@ -237,15 +237,15 @@ def joints_array_callback(joints_array):
     Wrist_euler=joints_list[sensor_f_list.index('Wrist')].position
     index_middle_euler=joints_list[sensor_f_list.index('Index_MIP')].position
     # print(Wrist_euler)
-    elbow_roll=Elbow_euler.y
-    wrist_fl=Wrist_euler.x
+    elbow_roll=Elbow_euler.x
+    wrist_fl=Wrist_euler.y
     wrist_ab=Wrist_euler.z
     index_ab=index_middle_euler.z
 
     # wrist_ab_n=wrist_ab_margining.running_average(wrist_ab)
     # wrist_fl_n=wrist_fl_margining.running_average(wrist_fl)
     # index_fl_n=index_fl_margining.running_average(index_fl)
-    if counter_calib > 1000:
+    if counter_calib > 500:
         elbow_roll_n=elbow_roll_margining.normalize(elbow_roll)
         wrist_ab_n=wrist_ab_margining.normalize(wrist_ab)
         wrist_fl_n=wrist_fl_margining.normalize(wrist_fl)

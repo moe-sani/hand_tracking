@@ -50,7 +50,7 @@ def extract_quaternion(data):
 
 def extract_pose_list(jdata,jason_stream_lables):
 	pose_list = []
-	for i in range(0, len(jdata)-1):
+	for i in range(0, len(jdata)):
 		temp_pose = Pose()
 		temp_pose.orientation = extract_quaternion(jdata[jason_stream_lables[i]])
 		euler = Point()
