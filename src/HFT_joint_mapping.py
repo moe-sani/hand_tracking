@@ -2,7 +2,6 @@
 import rospy
 from geometry_msgs.msg import Point
 from visualization_msgs.msg import MarkerArray, Marker
-from odas_msgs.msg import Odas, OdasList
 from geometry_msgs.msg import Point
 from geometry_msgs.msg import Pose
 from geometry_msgs.msg import PoseArray
@@ -245,7 +244,7 @@ def joints_array_callback(joints_array):
     # wrist_ab_n=wrist_ab_margining.running_average(wrist_ab)
     # wrist_fl_n=wrist_fl_margining.running_average(wrist_fl)
     # index_fl_n=index_fl_margining.running_average(index_fl)
-    if counter_calib > 500:
+    if counter_calib > 2000:
         elbow_roll_n=elbow_roll_margining.normalize(elbow_roll)
         wrist_ab_n=wrist_ab_margining.normalize(wrist_ab)
         wrist_fl_n=wrist_fl_margining.normalize(wrist_fl)

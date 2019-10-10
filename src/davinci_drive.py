@@ -2,7 +2,6 @@
 import rospy
 from geometry_msgs.msg import Point
 from visualization_msgs.msg import MarkerArray, Marker
-from odas_msgs.msg import Odas, OdasList
 from geometry_msgs.msg import Point
 from geometry_msgs.msg import Pose
 from geometry_msgs.msg import PoseArray
