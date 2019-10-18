@@ -59,7 +59,7 @@ class Active_Margining:
         self.energy_tank=0
         self.coeff=0.01
         self.previous_angle=0
-        self.max_step=0.02
+        self.max_step=0.007
     def update_margins(self,new_angle):
 
         if self.first_round is True:
@@ -236,8 +236,8 @@ def joints_array_callback(joints_array):
     Wrist_euler=joints_list[sensor_f_list.index('Wrist')].position
     index_middle_euler=joints_list[sensor_f_list.index('Index_MIP')].position
     # print(Wrist_euler)
-    elbow_roll=Elbow_euler.x
-    wrist_fl=Wrist_euler.y
+    elbow_roll=Elbow_euler.y
+    wrist_fl=Wrist_euler.x
     wrist_ab=Wrist_euler.z
     index_ab=index_middle_euler.z
 
