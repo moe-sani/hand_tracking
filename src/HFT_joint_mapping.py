@@ -60,6 +60,9 @@ class Active_Margining:
         self.coeff=0.01
         self.previous_angle=0
         self.max_step=0.007
+        CalLength = rospy.get_param('/CalLength')
+        self.calibration_counter=0
+        self.calibration_length=CalLength[self.name]
     def update_margins(self,new_angle):
 
         if self.first_round is True:
@@ -81,12 +84,19 @@ class Active_Margining:
         this func will run to find min and max of the motion, find the range and set the initial angle to its middle.
         :return:
         '''
-        if new_angle > self.high_margin:
-            self.high_margin = new_angle
-        if new_angle < self.low_margin:
-            self.low_margin = new_angle
+        if self.calibration_counter < self.calibration_length:
+            self.calibration_counter=self.calibration_counter+1
+            print('Please move {} to their limits...(0 to {}) now:{}'.format(self.name,self.calibration_length,self.calibration_counter))
+            if new_angle > self.high_margin:
+                self.high_margin = new_angle
+            if new_angle < self.low_margin:
+                self.low_margin = new_angle
 
-        self.rom = abs(self.high_margin - self.low_margin)
+            self.rom = abs(self.high_margin - self.low_margin)
+            return False
+        else:
+            return True
+
 
     def normalize(self,new_angle):
         # self.update_margins(new_angle)
@@ -217,14 +227,15 @@ elbow_roll_margining=Active_Margining(math.radians(120), 'elbow_roll',1)
 wrist_ab_margining=Active_Margining(math.radians(40), 'wrist_ab',2)
 wrist_fl_margining=Active_Margining(math.radians(110), 'wrist_fl',3)
 index_fl_margining=Active_Margining(math.radians(90), 'index_fl',4)
-counter_calib=0
+
+bCalibrationIsFinished=False
 
 def joints_array_callback(joints_array):
     global elbow_roll_margining
     global wrist_ab_margining
     global wrist_fl_margining
     global index_fl_margining
-    global counter_calib
+    global bCalibrationIsFinished
     # rospy.loginfo("HFT_joint_mapping")
     sensor_f_list = rospy.get_param('/sensor_f_list')
 
@@ -244,26 +255,36 @@ def joints_array_callback(joints_array):
     # wrist_ab_n=wrist_ab_margining.running_average(wrist_ab)
     # wrist_fl_n=wrist_fl_margining.running_average(wrist_fl)
     # index_fl_n=index_fl_margining.running_average(index_fl)
-    if counter_calib > 2000:
-        elbow_roll_n=elbow_roll_margining.normalize(elbow_roll)
-        wrist_ab_n=wrist_ab_margining.normalize(wrist_ab)
-        wrist_fl_n=wrist_fl_margining.normalize(wrist_fl)
-        index_ab_n=index_fl_margining.normalize(index_ab)
 
-        elbow_roll_n_p=elbow_roll_margining.speed_limit(elbow_roll_n)
-        wrist_ab_n_p=wrist_ab_margining.speed_limit(wrist_ab_n)
-        wrist_fl_n_p=wrist_fl_margining.speed_limit(wrist_fl_n)
-        index_ab_n_p=index_fl_margining.speed_limit(index_ab_n)
 
-        publish_to_davinci(elbow_roll_n_p*math.pi-math.pi/2,-(wrist_ab_n_p*math.pi-math.pi/2),-(wrist_fl_n_p*math.pi-math.pi/2), index_ab_n_p*math.pi/2)
+        # elbow_roll_margining.calibration(elbow_roll)
+        # wrist_ab_margining.calibration(wrist_ab)
+        # wrist_fl_margining.calibration(wrist_fl)
+        # index_fl_margining.calibration(index_ab)
+
+
+    if bCalibrationIsFinished:
+        elbow_roll_n = elbow_roll_margining.normalize(elbow_roll)
+        wrist_ab_n = wrist_ab_margining.normalize(wrist_ab)
+        wrist_fl_n = wrist_fl_margining.normalize(wrist_fl)
+        index_ab_n = index_fl_margining.normalize(index_ab)
+
+        elbow_roll_n_p = elbow_roll_margining.speed_limit(elbow_roll_n)
+        wrist_ab_n_p = wrist_ab_margining.speed_limit(wrist_ab_n)
+        wrist_fl_n_p = wrist_fl_margining.speed_limit(wrist_fl_n)
+        index_ab_n_p = index_fl_margining.speed_limit(index_ab_n)
+
+        publish_to_davinci(elbow_roll_n_p * math.pi - math.pi / 2, -(wrist_ab_n_p * math.pi - math.pi / 2),
+                           -(wrist_fl_n_p * math.pi - math.pi / 2), index_ab_n_p * math.pi / 2)
         # publish_to_davinci(wrist_ab_n*math.pi-math.pi/2,wrist_fl_n*math.pi-math.pi/2,index_ab_n*math.pi/2)
     else:
-        counter_calib = counter_calib+1
-        print('Please move angles to their limits...(0 to 1000) now:{}'.format(counter_calib))
-        elbow_roll_margining.calibration(elbow_roll)
-        wrist_ab_margining.calibration(wrist_ab)
-        wrist_fl_margining.calibration(wrist_fl)
-        index_fl_margining.calibration(index_ab)
+        if elbow_roll_margining.calibration(elbow_roll) is True:
+            if wrist_ab_margining.calibration(wrist_ab) is True:
+                if wrist_fl_margining.calibration(wrist_fl) is True:
+                    if index_fl_margining.calibration(index_ab) is True:
+                        bCalibrationIsFinished = True
+
+
 
     elbow_roll_margining.visulize_margins()
     wrist_ab_margining.visulize_margins()

@@ -1,29 +1,17 @@
 #!/usr/bin/env python
 # license removed for brevity
 import rospy
-from std_msgs.msg import String
 import serial
 from geometry_msgs.msg import Point
-from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import Quaternion
-
 from geometry_msgs.msg import Pose
 from geometry_msgs.msg import PoseArray
 from std_msgs.msg import Float64
-from std_msgs.msg import Header
 import json
 from tf.transformations import euler_from_quaternion, quaternion_from_euler
-import tf
-import math
-from tf.msg import tfMessage
-from geometry_msgs.msg import TransformStamped
 
 
 ser = serial.Serial('/dev/ttyACM0', 115200, timeout=10)		#ttyUSB0
-
-# temp_pose=Pose()
-
-# lst=[temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose,temp_pose]
 
 
 
@@ -85,8 +73,7 @@ def serial_parser():
 				pub_SC.publish(sc_data)
 
 			if 'S0' in dataj:
-				print('data:')
-				print(dataj)
+				# print("data:",dataj)
 				imu_array=PoseArray()
 				imu_array.header.stamp = rospy.get_rostime()
 				imu_array.header.frame_id='/world'
@@ -94,8 +81,8 @@ def serial_parser():
 				pubArray.publish(imu_array)
 				# print("extract_pose_list(dataj):=======================================")
 				# print(extract_pose_list(dataj))
-			elif 'C8' in dataj:
-				print("calibration", dataj)
+			elif 'C0' in dataj:
+				print("calibration:", dataj)
 				pass
 		rate.sleep()
 

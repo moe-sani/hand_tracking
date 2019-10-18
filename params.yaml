@@ -53,6 +53,15 @@
 /hft_tf/Index_PIP  : [0.0,0.1,0.0]        #wrt Index_MIP
 /hft_tf/Index_DIP  : [0.0,0.1,0.0]        #wrt Index_PIP
 
+# Program parameters:
+
+#Calibration Parameters:
+
+#Calibration length defines how long calibration stage will last for each joint
+/CalLength/wrist_fl: 500
+/CalLength/wrist_ab: 500
+/CalLength/elbow_roll: 500
+/CalLength/index_fl: 500
 
 
 
