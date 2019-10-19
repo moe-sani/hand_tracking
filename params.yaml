@@ -73,10 +73,10 @@
 
 /joint_limits/roll_max: 50000
 /joint_limits/roll_min: -100000
-/joint_limits/pitch_max: -80000
-/joint_limits/pitch_min: 80000
-/joint_limits/leftjaw_max: -100000
-/joint_limits/leftjaw_min: 100000
-/joint_limits/rightjaw_max: -100000
+/joint_limits/pitch_max: 80000
+/joint_limits/pitch_min: -80000
+/joint_limits/leftjaw_max: 100000
+/joint_limits/leftjaw_min: -100000 #left jaw at each point should be equal or bigger than right jaw in order to avoid collision
+/joint_limits/rightjaw_max: 100000
 /joint_limits/rightjaw_min: -100000
-/joint_limits/jaw_offset: 0
+/joint_limits/jaw_offset: 0.1 # this is usally a small value as it is in Radians.

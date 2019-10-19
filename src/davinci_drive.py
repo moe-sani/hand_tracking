@@ -55,7 +55,7 @@ class davinci_tool_joints:
         joint_limits = rospy.get_param('/joint_limits')
         self.roll=Joints(-math.pi / 2, math.pi / 2, joint_limits['roll_min'], joint_limits['roll_max'])
         self.pitch=Joints(-math.pi / 2, math.pi / 2, joint_limits['pitch_min'], joint_limits['pitch_max'])
-        self.leftjaw=Joints(-math.pi / 2, math.pi / 2, joint_limits['leftjaw_min'], joint_limits['leftjaw_max']) #left jaw shoulf be bigger than right jaw
+        self.leftjaw=Joints(-math.pi / 2, math.pi / 2, joint_limits['leftjaw_min'], joint_limits['leftjaw_max'])
         self.rightjaw=Joints(-math.pi / 2, math.pi / 2, joint_limits['rightjaw_min'], joint_limits['rightjaw_max'])
 
         self.pitch_low_margin=self.pitch.angleMin
