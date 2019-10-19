@@ -1,4 +1,12 @@
 #!/usr/bin/env python
+# license removed for brevity
+'''
+author: Mohammad Fattahi Sani
+email: fattahi.m91@gmail.com
+this code is provided only for SMARTsurg's Internal refrence.
+author's permission is required for any kind of partial or whole usage or distribution.
+'''
+
 import rospy
 from geometry_msgs.msg import Point
 from visualization_msgs.msg import MarkerArray, Marker
