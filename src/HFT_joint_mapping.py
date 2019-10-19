@@ -40,6 +40,12 @@ def rad_to_degree(p_rad):
 
 class Active_Margining:
     def __init__(self, rom,name,uniqe_id):
+        '''
+
+        :param rom: this is not used for now as we have calibration stage to find the ROM
+        :param name: dedicating a specific name for each joint
+        :param uniqe_id:
+        '''
         print("new margining")
         self.low_margin = 100
         self.high_margin = -100
@@ -59,7 +65,8 @@ class Active_Margining:
         self.energy_tank=0
         self.coeff=0.01
         self.previous_angle=0
-        self.max_step=0.007
+        speed_limit = rospy.get_param('/speed_limit')
+        self.max_step=speed_limit
         CalLength = rospy.get_param('/CalLength')
         self.calibration_counter=0
         self.calibration_length=CalLength[self.name]
@@ -69,8 +76,6 @@ class Active_Margining:
             self.high_margin=new_angle+self.rom/2
             self.low_margin=self.high_margin-self.rom
             self.first_round=False
-
-
         if new_angle > self.high_margin:
             self.high_margin = self.high_margin+self.margin_stiffness
             self.low_margin = self.high_margin - self.rom
@@ -147,7 +152,6 @@ class Active_Margining:
         cube.scale.x = 0.04
         cube.scale.y = 0.1
         cube.scale.z = 0.1
-        #
 
         cube.color.a = 1
         cube.color.r = 1
@@ -205,24 +209,31 @@ class Active_Margining:
 
 
 def publish_to_davinci(elbow_roll,outer_wrist_pitch,outer_wrist_yaw,jaw):
-    # pub_joints = rospy.Publisher('/dvrk/PSM2/joint_states', JointState, queue_size=1)
-    pub_joints = rospy.Publisher('/davinci_joint_states', JointState, queue_size=1)
-    joint_state=JointState()
 
-
-    # joint_state.name = ["outer_yaw", "outer_pitch", "outer_pitch_1", "outer_pitch_2", "outer_pitch_3", "outer_pitch_4",
-  # "outer_pitch_5", "outer_insertion", "outer_roll", "outer_wrist_pitch", "outer_wrist_yaw",
-  # "jaw", "jaw_mimic_1", "jaw_mimic_2"]
-    # jaw: 0-1.57
-    # jaw_mimic_1 + jaw_mimic_2 should be equal to jaw
-    # joint_state.position=[0.0, 0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,outer_wrist_pitch,outer_wrist_yaw,jaw,jaw/2,jaw/2]
+    joint_state = JointState()
     joint_state.header.frame_id = "world"
-    joint_state.name = ["roll","pitch","yaw","jaw"]
-    joint_state.position=[elbow_roll,-outer_wrist_yaw,-outer_wrist_pitch,jaw]
     joint_state.header.stamp = rospy.Time.now()
+
+    simulation_param=rospy.get_param('/simulation_param')
+    if simulation_param is True:
+        pub_joints = rospy.Publisher('/dvrk/PSM2/joint_states', JointState, queue_size=1)
+        joint_state.name = ["outer_yaw", "outer_pitch", "outer_pitch_1", "outer_pitch_2", "outer_pitch_3",
+                            "outer_pitch_4",
+                            "outer_pitch_5", "outer_insertion", "outer_roll", "outer_wrist_pitch", "outer_wrist_yaw",
+                            "jaw", "jaw_mimic_1", "jaw_mimic_2"]
+        # jaw: 0-1.57
+        # jaw_mimic_1 + jaw_mimic_2 should be equal to jaw
+        joint_state.position=[0.0, 0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,outer_wrist_pitch,outer_wrist_yaw,jaw,jaw/2,jaw/2]
+    else:
+        pub_joints = rospy.Publisher('/davinci_joint_states', JointState, queue_size=1)
+        joint_state.name = ["roll","pitch","yaw","jaw"]
+        joint_state.position=[elbow_roll,-outer_wrist_yaw,-outer_wrist_pitch,jaw]
+
     print('roll:{} ,pitch:{} ,yaw:{} ,jaw:{} '.format(elbow_roll,outer_wrist_pitch,outer_wrist_yaw,jaw))
     pub_joints.publish(joint_state)
 
+
+# Initializing active margining for each joint.
 elbow_roll_margining=Active_Margining(math.radians(120), 'elbow_roll',1)
 wrist_ab_margining=Active_Margining(math.radians(40), 'wrist_ab',2)
 wrist_fl_margining=Active_Margining(math.radians(110), 'wrist_fl',3)
@@ -252,17 +263,6 @@ def joints_array_callback(joints_array):
     wrist_ab=Wrist_euler.z
     index_ab=index_middle_euler.z
 
-    # wrist_ab_n=wrist_ab_margining.running_average(wrist_ab)
-    # wrist_fl_n=wrist_fl_margining.running_average(wrist_fl)
-    # index_fl_n=index_fl_margining.running_average(index_fl)
-
-
-        # elbow_roll_margining.calibration(elbow_roll)
-        # wrist_ab_margining.calibration(wrist_ab)
-        # wrist_fl_margining.calibration(wrist_fl)
-        # index_fl_margining.calibration(index_ab)
-
-
     if bCalibrationIsFinished:
         elbow_roll_n = elbow_roll_margining.normalize(elbow_roll)
         wrist_ab_n = wrist_ab_margining.normalize(wrist_ab)
@@ -284,8 +284,6 @@ def joints_array_callback(joints_array):
                     if index_fl_margining.calibration(index_ab) is True:
                         bCalibrationIsFinished = True
 
-
-
     elbow_roll_margining.visulize_margins()
     wrist_ab_margining.visulize_margins()
     wrist_fl_margining.visulize_margins()
@@ -298,15 +296,10 @@ def joints_array_callback(joints_array):
 
 def main():
     global listener
-    rospy.init_node('hand_joint_mapping', anonymous=True)
+    rospy.init_node('HFT_joint_mapping', anonymous=True)
     rospy.Subscriber("/joints_array", PoseArray, joints_array_callback, queue_size=10)
     listener = tf.TransformListener()
-    # rate = rospy.Rate(100)  # 10hz
-    # while not rospy.is_shutdown():
-    #     publish_to_davinci()
-    #     rate.sleep()
     rospy.spin()
-
 
 if __name__ == '__main__':
     main()
