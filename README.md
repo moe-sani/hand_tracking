@@ -1,5 +1,6 @@
 # Hand Tracking
 author: Mohammad Fattahi Sani
+Smartsurg project
 This is a ROS package that recieves data from Hand Tracking Board and extracts joint angles, and finally maps them to the joints in davinci tool.
 
 ## How to Run
@@ -21,7 +22,7 @@ then load parameters by navigate to the source folder and:
 
 Now you can run every desired node in a separate terminal
 
-## functionality of each node
+# Functionality of each node
     
 the following picture shows all nodes and messages in this package
 ![Alt text](rosgraph.png?raw=true "Title")
@@ -99,7 +100,7 @@ this node publishes the sensor data in /imu_pub_array as PoseArray:
 
 please note that values under 'position' are orientation in euler angles, and values under 'orientation' are orientations in quaternions.
 
-## joint angles publisher
+## 2. joint angles publisher
 
     rosrun hand_tracking HFT_joint_angle_publisher.py
 this node actually calculates the relative quaternion for each joint    
@@ -158,7 +159,7 @@ publishes relative quaternions to \joints_array
 
 the fact that which joint is calculated relative to which joint is given in the params.yaml file.
 
-## joint mapping node
+## 3. joint mapping node
 
     rosrun hand_tracking HFT_joint_mapping.py
         
@@ -183,7 +184,7 @@ this node publishes /davinci_joint_states as JointState message type:
 
 
 
-## davinci driver
+## 4. davinci driver
 this node subscribes to the joint states and publishes the message required by Epos driver node
 
 ## outputs:
@@ -195,7 +196,7 @@ publishes to /exoeskeleton topic
     data: [50000.0, 60798.359051997904, 46179.95490956216, -100000.0, 1.0]
 
 
-### epos dirver
+### 5. epos dirver
 
     lsusb
     sudo chmod a+w /dev/bus/usb/001/007
@@ -232,20 +233,20 @@ then you should change the values for each joint in order to find the maximum an
 
 # DEBUGGING OPTIONS
 
-## RVIZ visualization
+## 1. RVIZ visualization
 
 open rviz and load the HFT.rviz file.
 you will see the markers and joint limits during the calibration
 
 ![Alt text](rviz.png?raw=true "Title")
 
-## rqt plot options
+## 2. rqt plot options
 
 you can see all the joint angles and raw sensor values in rqt plot environment.
 
 ![Alt text](rqt.png?raw=true "Title")
 
-## runing the da vinci simulator
+## 3. runing the da vinci simulator
 you should first install the davinci research kit in another workspace, then
 in new terminal, run:
 
