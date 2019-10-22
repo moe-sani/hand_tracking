@@ -83,3 +83,17 @@
 /joint_limits/rightjaw_max: 100000
 /joint_limits/rightjaw_min: -100000
 /joint_limits/jaw_offset: 0.1 # this is usally a small value as it is in Radians.
+
+
+
+#pedal
+
+/desired_pedal: 3 # davinci tool will be actuated if this number is equal to the number published by arduino, for example now, it will be activated by pedal3
+#// 0: no pedal is activated
+#// 1: pedal 1 grab
+#// 2: pedal 2 camera
+#// 3: pedals 1&2
+#// 4: pedal 3 fix
+#// 5: pedals 1&3
+#// 6: pedals 2&3
+#// 7: all pedals

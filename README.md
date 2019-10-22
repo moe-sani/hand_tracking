@@ -231,6 +231,18 @@ joint limit parameters are in yaml file. they should be manually calibrated.
 you should run the EPOS driver node and the aforementioned topic manually.
 then you should change the values for each joint in order to find the maximum and minimum step counts for the joints
 
+
+# pedals
+pedal can defined in param file.
+if you dont have pedal, you can test using the following code.
+
+to engage:
+
+    rostopic pub /pedals std_msgs/Int32 3
+to release:
+
+    rostopic pub /pedals std_msgs/Int32 0
+
 # DEBUGGING OPTIONS
 
 ## 1. RVIZ visualization

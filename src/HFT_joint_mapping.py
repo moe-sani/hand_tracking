@@ -18,7 +18,7 @@ from geometry_msgs.msg import TransformStamped
 from sensor_msgs.msg import JointState
 
 from tf.msg import tfMessage
-from std_msgs.msg import Float64
+from std_msgs.msg import Int32
 from hand_tracking.msg import Float64ArrayStamped
 from geometry_msgs.msg import TwistStamped
 import numpy
@@ -217,7 +217,7 @@ class Active_Margining:
 
 
 def publish_to_davinci(elbow_roll,outer_wrist_pitch,outer_wrist_yaw,jaw):
-
+    global pedal
     joint_state = JointState()
     joint_state.header.frame_id = "world"
     joint_state.header.stamp = rospy.Time.now()
@@ -237,8 +237,10 @@ def publish_to_davinci(elbow_roll,outer_wrist_pitch,outer_wrist_yaw,jaw):
         joint_state.name = ["roll","pitch","yaw","jaw"]
         joint_state.position=[elbow_roll,-outer_wrist_yaw,-outer_wrist_pitch,jaw]
 
-    print('roll:{} ,pitch:{} ,yaw:{} ,jaw:{} '.format(elbow_roll,outer_wrist_pitch,outer_wrist_yaw,jaw))
-    pub_joints.publish(joint_state)
+    desired_pedal = rospy.get_param('/desired_pedal')
+    if(pedal==desired_pedal):
+        print('roll:{} ,pitch:{} ,yaw:{} ,jaw:{} '.format(elbow_roll,outer_wrist_pitch,outer_wrist_yaw,jaw))
+        pub_joints.publish(joint_state)
 
 
 # Initializing active margining for each joint.
@@ -302,10 +304,17 @@ def joints_array_callback(joints_array):
     wrist_fl_margining.visualize_new_angle(wrist_fl)
     index_fl_margining.visualize_new_angle(index_ab)
 
+
+pedal=Int32()
+def pedal_read_callback(data):
+    global pedal
+    pedal=data.data
+
 def main():
     global listener
     rospy.init_node('HFT_joint_mapping', anonymous=True)
     rospy.Subscriber("/joints_array", PoseArray, joints_array_callback, queue_size=10)
+    rospy.Subscriber("/pedals", Int32, pedal_read_callback, queue_size=10)
     listener = tf.TransformListener()
     rospy.spin()
 
