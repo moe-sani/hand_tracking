@@ -213,7 +213,7 @@ This subscribes to message /exoskeleton and needs a float64multiarry
           stride: 0
       data_offset: 0
     data: [0.0, 0.0, 0.0, 0.0, 1.0]"
-
+*** note that there should be space after each :
 
 Write this to test:
 
