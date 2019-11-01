@@ -198,7 +198,7 @@ def publish_to_davinci(elbow_roll,outer_wrist_pitch,outer_wrist_yaw,jaw):
     else:
         pub_joints = rospy.Publisher('/davinci_joint_states', JointState, queue_size=1)
         joint_state.name = ["roll","pitch","yaw","jaw"]
-        joint_state.position=[elbow_roll,-outer_wrist_yaw,-outer_wrist_pitch,jaw]
+        joint_state.position=[elbow_roll,-outer_wrist_pitch,-outer_wrist_yaw,jaw]
 
     desired_pedal = rospy.get_param('/desired_pedal')
     if(pedal==desired_pedal):

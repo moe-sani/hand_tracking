@@ -27,6 +27,8 @@ Now you can run every desired node in a separate terminal
 the following picture shows all nodes and messages in this package
 ![Alt text](rosgraph.png?raw=true "Title")
 
+
+
 ## 1. sensor data publisher node
 in another terminal, run:
 
@@ -186,7 +188,9 @@ this node publishes /davinci_joint_states as JointState message type:
 
 ## 4. davinci driver
 this node subscribes to the joint states and publishes the message required by Epos driver node
-
+    
+    rosrun hand_tracking davinci_drive.py
+    
 ## outputs:
 publishes to /exoeskeleton topic
 
@@ -272,3 +276,31 @@ then run the following command:
 
 dont forget that you should run the main launch file with sim:=true parameter.
 
+
+
+# Notes:
+
+* in case of any malfunction, please try to find the root cause of the problem by debugging different parts and outputs.
+you can run the nodes separately (not using the launch file) and see which output does not make sense.
+
+
+
+# sensor placement:
+
+Sensor placement is shown in the following figure:
+
+![Alt text](hand.jpg?raw=true "Title")
+
+Please make sure to validate the sensor positions after running the system.
+
+You can validate it as follows:
+
+1. run roscore. load the param.yaml and run 1) serial publisher, 2) HFT joint angle publisher, and 3) HFT joint mapping
+2. follow the calibration steps in HFT_joint_mapping terminal
+3. activate the pedal, then you will see the joint values printed
+4. now you can keep the other sensors still and move each sensor in desired direction manually. you will see the printed values will change between the joint limits ( -pi ~ pi )
+* for example, in order to test the yaw, you can keep everything still and move the sensor on your hand in yaw direction using your other hand.
+* if all these angles are working fine, this means that the exoeskeleton part of the system is working well, and the problem lies in the tool part.
+
+* please make sure that correct sensors are attached to correct locations. make sure to verify this by moving the sensors individually and checking their values, either in RVIZ or in terminal or rqt.
+* by checking into rviz and moving each sensor, you will see that the corresponding frame is moving. each frame has name on it.
