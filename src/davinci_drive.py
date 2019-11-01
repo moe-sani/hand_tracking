@@ -60,15 +60,16 @@ class Joints:
 class davinci_tool_joints:
     def __init__(self):
         # print("new ")
-        joint_limits = rospy.get_param('/joint_limits')
-        self.roll=Joints(-math.pi / 2, math.pi / 2, joint_limits['roll_min'], joint_limits['roll_max'])
-        self.pitch=Joints(-math.pi / 2, math.pi / 2, joint_limits['pitch_min'], joint_limits['pitch_max'])
-        self.leftjaw=Joints(-math.pi / 2, math.pi / 2, joint_limits['leftjaw_min'], joint_limits['leftjaw_max'])
-        self.rightjaw=Joints(-math.pi / 2, math.pi / 2, joint_limits['rightjaw_min'], joint_limits['rightjaw_max'])
+        joint_limits_QC = rospy.get_param('/joint_limits_QC')
+        joint_ROM = rospy.get_param('/joint_ROM')
+        self.roll=Joints(-joint_ROM['roll_ROM']*math.pi / 2, joint_ROM['roll_ROM']*math.pi / 2, joint_limits_QC['roll_min_QC'], joint_limits_QC['roll_max_QC'])
+        self.pitch=Joints(-joint_ROM['pitch_ROM']*math.pi / 2, joint_ROM['pitch_ROM']*math.pi / 2, joint_limits_QC['pitch_min_QC'], joint_limits_QC['pitch_max_QC'])
+        self.leftjaw=Joints(-joint_ROM['leftjaw_ROM']*math.pi / 2, joint_ROM['leftjaw_ROM']*math.pi / 2, joint_limits_QC['leftjaw_min_QC'], joint_limits_QC['leftjaw_max_QC'])
+        self.rightjaw=Joints(-joint_ROM['rightjaw_ROM']*math.pi / 2, joint_ROM['rightjaw_ROM']*math.pi / 2, joint_limits_QC['rightjaw_min_QC'], joint_limits_QC['rightjaw_max_QC'])
 
         self.pitch_low_margin=self.pitch.angleMin
         self.pitch_rom=self.pitch.angle_range
-        self.jaw_offset=joint_limits['jaw_offset']
+        self.jaw_offset=joint_limits_QC['jaw_offset']
 
     def pitch_yaw_mapping(self,yaw,pitch):
         pitch_normalized=abs((pitch - self.pitch_low_margin) / self.pitch_rom)  # normalize between 0-1
@@ -111,12 +112,6 @@ def davinci_joint_states_callback(joint_state):
     pitch=joint_dict['pitch']
     yaw=joint_dict['yaw']
     jaw=joint_dict['jaw']
-
-    # writing a function that
-    # 1. has joint limits
-    # takes relative motion into account
-    # creates jaw motion from yaw angle
-    # maps the radians to pulse steps
 
     [da_roll, da_pitch, da_leftjaw, da_rightjaw]=joints.calculate_joints(roll, pitch, yaw, jaw)
     pub = rospy.Publisher('exoskeleton', Float64MultiArray, queue_size=10)
