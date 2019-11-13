@@ -1,6 +1,11 @@
 # Hand Tracking
 This is a ROS package that recieves data from Hand Tracking Board and extracts joint angles, and finally maps them to the joints in shadow_robot's hand.
 
+
+
+save_to_file_TPE is the final version for saving
+
+
 ## Run
 First we should run ROS core:
 
