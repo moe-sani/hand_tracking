@@ -63,10 +63,12 @@
 #Calibration Parameters:
 
 #Calibration length defines how long calibration stage will last for each joint
-/CalLength/wrist_fl: 500
-/CalLength/wrist_ab: 500
-/CalLength/elbow_roll: 500
-/CalLength/index_fl: 500
+/CalLength/index_mip: 500
+/CalLength/index_pip: 500
+/CalLength/middle_mip: 500
+/CalLength/middle_pip: 500
+/CalLength/thumb_mip: 500
+/CalLength/thumb_dip: 500
 
 /simulation_param: 0
 
@@ -76,10 +78,24 @@
 
 #=====================desired rom for hand joints:=============
 
-/desired_ROMs/elbow_roll : 1
-/desired_ROMs/wrist_ab : 1
-/desired_ROMs/wrist_fl : 1
-/desired_ROMs/index_fl : 1
+/desired_ROMs/index_mip_upper:  0.39   # this number is in radians
+/desired_ROMs/index_mip_lower:  -1.04
+
+/desired_ROMs/middle_mip_upper: 0.39
+/desired_ROMs/middle_mip_lower: -1.04
+
+/desired_ROMs/thumb_mip_upper:  1.04
+/desired_ROMs/thumb_mip_lower:  -0.39
+
+
+/desired_ROMs/index_pip_upper:  1.04
+/desired_ROMs/index_pip_lower:  0
+
+/desired_ROMs/middle_pip_upper: 1.04
+/desired_ROMs/middle_pip_lower: 0
+
+/desired_ROMs/thumb_dip_upper:  0
+/desired_ROMs/thumb_dip_lower:  -1.04
 
 
 
