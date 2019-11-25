@@ -66,7 +66,7 @@
 /CalLength/elbow_roll: 500
 /CalLength/index_fl: 500
 
-/simulation_param: 0
+/simulation_param: 1
 
 /speed_limit: 0.07   #this value limits the speed of davinci movements.
                       # if the jonit angle variation between two steps is bigger than this limit, it will be limited by this number.

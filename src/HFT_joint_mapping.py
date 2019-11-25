@@ -184,26 +184,26 @@ def publish_to_davinci(elbow_roll,outer_wrist_pitch,outer_wrist_yaw,jaw):
     joint_state = JointState()
     joint_state.header.frame_id = "world"
     joint_state.header.stamp = rospy.Time.now()
-
     simulation_param=rospy.get_param('/simulation_param')
     if simulation_param is True:
-        pub_joints = rospy.Publisher('/dvrk/PSM2/joint_states', JointState, queue_size=1)
-        joint_state.name = ["outer_yaw", "outer_pitch", "outer_pitch_1", "outer_pitch_2", "outer_pitch_3",
-                            "outer_pitch_4",
-                            "outer_pitch_5", "outer_insertion", "outer_roll", "outer_wrist_pitch", "outer_wrist_yaw",
-                            "jaw", "jaw_mimic_1", "jaw_mimic_2"]
-        # jaw: 0-1.57
-        # jaw_mimic_1 + jaw_mimic_2 should be equal to jaw
-        joint_state.position=[0.0, 0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,outer_wrist_pitch,outer_wrist_yaw,jaw,jaw/2,jaw/2]
+        pub_joints = rospy.Publisher('/dvrk/ss_davinci/joint_states', JointState, queue_size=1)
+        joint_state.name = [ "outer_roll", "outer_wrist_pitch", "outer_wrist_yaw",
+                                "jaw", "jaw_mimic_1", "jaw_mimic_2"]
+            # jaw: 0-1.57
+            # jaw_mimic_1 + jaw_mimic_2 should be equal to jaw
+        joint_state.position=[elbow_roll,outer_wrist_pitch,outer_wrist_yaw,jaw,jaw/2,jaw/2]
+        joint_state.velocity=[0.0,0,0,0,0,0]
+        joint_state.effort=[0.0,0,0,0,0,0]
     else:
         pub_joints = rospy.Publisher('/davinci_joint_states', JointState, queue_size=1)
         joint_state.name = ["roll","pitch","yaw","jaw"]
         joint_state.position=[elbow_roll,-outer_wrist_pitch,-outer_wrist_yaw,jaw]
 
     desired_pedal = rospy.get_param('/desired_pedal')
+    pub_joints.publish(joint_state)
+    print('roll:{} ,pitch:{} ,yaw:{} ,jaw:{} '.format(elbow_roll,outer_wrist_pitch,outer_wrist_yaw,jaw))
     if(pedal==desired_pedal):
-        print('roll:{} ,pitch:{} ,yaw:{} ,jaw:{} '.format(elbow_roll,outer_wrist_pitch,outer_wrist_yaw,jaw))
-        pub_joints.publish(joint_state)
+        pass
 
 
 # Initializing active margining for each joint.
