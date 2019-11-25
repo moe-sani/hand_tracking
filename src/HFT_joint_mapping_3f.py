@@ -204,33 +204,6 @@ def publish_to_3fingertool(index_mip_n_p, middle_mip_n_p, thumb_mip_n_p, index_p
     pub_joints.publish(joint_state)
 
 
-def publish_to_davinci(elbow_roll,outer_wrist_pitch,outer_wrist_yaw,jaw):
-    global pedal
-    joint_state = JointState()
-    joint_state.header.frame_id = "world"
-    joint_state.header.stamp = rospy.Time.now()
-    simulation_param=rospy.get_param('/simulation_param')
-    if simulation_param is True:
-        pub_joints = rospy.Publisher('/dvrk/ss_davinci/joint_states', JointState, queue_size=1)
-        joint_state.name = [ "outer_roll", "outer_wrist_pitch", "outer_wrist_yaw",
-                                "jaw", "jaw_mimic_1", "jaw_mimic_2"]
-            # jaw: 0-1.57
-            # jaw_mimic_1 + jaw_mimic_2 should be equal to jaw
-        joint_state.position=[elbow_roll,outer_wrist_pitch,outer_wrist_yaw,jaw,jaw/2,jaw/2]
-        joint_state.velocity=[0.0,0,0,0,0,0]
-        joint_state.effort=[0.0,0,0,0,0,0]
-    else:
-        pub_joints = rospy.Publisher('/davinci_joint_states', JointState, queue_size=1)
-        joint_state.name = ["roll","pitch","yaw","jaw"]
-        joint_state.position=[elbow_roll,-outer_wrist_pitch,-outer_wrist_yaw,jaw]
-
-    desired_pedal = rospy.get_param('/desired_pedal')
-    pub_joints.publish(joint_state)
-    print('roll:{} ,pitch:{} ,yaw:{} ,jaw:{} '.format(elbow_roll,outer_wrist_pitch,outer_wrist_yaw,jaw))
-    if(pedal==desired_pedal):
-        pass
-
-
 # Initializing active margining for each joint.
 index_mip_margining  = Active_Margining('index_mip',1)
 index_pip_margining  = Active_Margining('index_pip',2)
@@ -270,7 +243,7 @@ def joints_array_callback(joints_array):
     thumb_mip=thumb_mip_euler.x
     thumb_dip=thumb_dip_euler.x
     # print(index_mip,middle_mip,thumb_mip)
-    publish_to_3fingertool(0,0,0,0,0,0)
+
     if bCalibrationIsFinished:
         #first we normalize the angles between 0~1
         index_mip_n =  index_mip_margining.map_to_margines(index_mip)
@@ -296,6 +269,7 @@ def joints_array_callback(joints_array):
         #                    -(wrist_fl_n_p * math.pi - math.pi / 2), index_ab_n_p * math.pi / 2)
         # publish_to_davinci(wrist_ab_n*math.pi-math.pi/2,wrist_fl_n*math.pi-math.pi/2,index_ab_n*math.pi/2)
     else:
+        publish_to_3fingertool(0, 0, 0, 0, 0, 0)
         if index_mip_margining.calibration(index_mip) is True:
             if index_pip_margining.calibration(index_pip) is True:
                 if middle_mip_margining.calibration(middle_mip) is True:

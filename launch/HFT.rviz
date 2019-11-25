@@ -67,22 +67,6 @@ Visualization Manager:
       Plane Cell Count: 10
       Reference Frame: <Fixed Frame>
       Value: true
-    - Alpha: 1
-      Class: rviz/RobotModel
-      Collision Enabled: false
-      Enabled: false
-      Links:
-        All Links Enabled: true
-        Expand Joint Details: false
-        Expand Link Details: false
-        Expand Tree: false
-        Link Tree Style: Links in Alphabetic Order
-      Name: RobotModel
-      Robot Description: /dvrk/PSM2/robot_description
-      TF Prefix: ""
-      Update Interval: 0
-      Value: false
-      Visual Enabled: true
     - Class: rviz/Marker
       Enabled: true
       Marker Topic: /index_fl
@@ -132,37 +116,19 @@ Visualization Manager:
       Queue Size: 100
       Value: true
     - Class: rviz/TF
-      Enabled: true
+      Enabled: false
       Frame Timeout: 15
       Frames:
         All Enabled: false
-        Elbow:
-          Value: true
-        Index_MIP:
-          Value: true
-        Thumb_MIP:
-          Value: true
-        Wrist:
-          Value: true
-        world:
-          Value: true
       Marker Scale: 1
       Name: TF
       Show Arrows: false
       Show Axes: true
       Show Names: true
       Tree:
-        world:
-          Elbow:
-            {}
-          Index_MIP:
-            {}
-          Thumb_MIP:
-            {}
-          Wrist:
-            {}
+        {}
       Update Interval: 0
-      Value: true
+      Value: false
     - Class: rviz/Marker
       Enabled: true
       Marker Topic: /elbow_roll
@@ -179,6 +145,71 @@ Visualization Manager:
         elbow_roll_angle: true
       Queue Size: 100
       Value: true
+    - Alpha: 1
+      Class: rviz/RobotModel
+      Collision Enabled: false
+      Enabled: true
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+        tool_main_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        tool_wrist_caudier_ee_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        tool_wrist_caudier_ee_link_0:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        tool_wrist_caudier_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        tool_wrist_caudier_link_2_left:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        tool_wrist_caudier_link_2_right:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        tool_wrist_caudier_link_shaft:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        tool_wrist_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        tool_wrist_shaft_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        world:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+      Name: RobotModel
+      Robot Description: robot_description
+      TF Prefix: ""
+      Update Interval: 0
+      Value: true
+      Visual Enabled: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -204,7 +235,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 3.98832846
+      Distance: 2.82347512
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
@@ -219,10 +250,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.0653979629
+      Pitch: 0.440397948
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 1.06357217
+      Yaw: 1.47857344
     Saved: ~
 Window Geometry:
   Displays:
@@ -240,5 +271,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1855
-  X: 65
+  X: 1985
   Y: 24

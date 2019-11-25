@@ -254,6 +254,7 @@ def joints_array_callback(joints_array):
         #                    -(wrist_fl_n_p * math.pi - math.pi / 2), index_ab_n_p * math.pi / 2)
         # publish_to_davinci(wrist_ab_n*math.pi-math.pi/2,wrist_fl_n*math.pi-math.pi/2,index_ab_n*math.pi/2)
     else:
+        publish_to_davinci(0, 0, 0, 0)
         if elbow_roll_margining.calibration(elbow_roll) is True:
             if wrist_ab_margining.calibration(wrist_ab) is True:
                 if wrist_fl_margining.calibration(wrist_fl) is True:

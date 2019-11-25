@@ -67,22 +67,6 @@ Visualization Manager:
       Plane Cell Count: 10
       Reference Frame: <Fixed Frame>
       Value: true
-    - Alpha: 1
-      Class: rviz/RobotModel
-      Collision Enabled: false
-      Enabled: false
-      Links:
-        All Links Enabled: true
-        Expand Joint Details: false
-        Expand Link Details: false
-        Expand Tree: false
-        Link Tree Style: Links in Alphabetic Order
-      Name: RobotModel
-      Robot Description: /dvrk/PSM2/robot_description
-      TF Prefix: ""
-      Update Interval: 0
-      Value: false
-      Visual Enabled: true
     - Class: rviz/Marker
       Enabled: true
       Marker Topic: /index_fl
@@ -150,6 +134,20 @@ Visualization Manager:
           Value: true
         Thumb_MIP:
           Value: true
+        link_index1:
+          Value: true
+        link_index2:
+          Value: true
+        link_middle1:
+          Value: true
+        link_middle2:
+          Value: true
+        link_palm:
+          Value: true
+        link_thumb1:
+          Value: true
+        link_thumb2:
+          Value: true
         world:
           Value: true
       Marker Scale: 1
@@ -173,6 +171,16 @@ Visualization Manager:
             {}
           Thumb_MIP:
             {}
+          link_palm:
+            link_index1:
+              link_index2:
+                {}
+            link_middle1:
+              link_middle2:
+                {}
+            link_thumb1:
+              link_thumb2:
+                {}
       Update Interval: 0
       Value: true
     - Class: rviz/Marker
@@ -231,6 +239,61 @@ Visualization Manager:
         thumb_mip_angle: true
       Queue Size: 100
       Value: true
+    - Alpha: 1
+      Class: rviz/RobotModel
+      Collision Enabled: false
+      Enabled: true
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+        link_index1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        link_index2:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        link_middle1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        link_middle2:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        link_palm:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        link_thumb1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        link_thumb2:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        world:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+      Name: RobotModel
+      Robot Description: robot_description
+      TF Prefix: ""
+      Update Interval: 0
+      Value: true
+      Visual Enabled: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -256,25 +319,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 3.98832846
+      Distance: 6.27571201
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.254851013
-        Y: 0.540158987
-        Z: 0.468365014
+        X: 0.14285934
+        Y: 0.329438448
+        Z: 1.40111196
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.0653979629
+      Pitch: 0.25039798
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 1.06357217
+      Yaw: 1.05857217
     Saved: ~
 Window Geometry:
   Displays:
