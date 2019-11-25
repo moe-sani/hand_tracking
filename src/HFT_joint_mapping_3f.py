@@ -79,7 +79,10 @@ class Active_Margining:
         self.calibration_counter=0
         self.calibration_length=CalLength[self.name]
         desired_ROMs = rospy.get_param('/desired_ROMs')
-        self.desired_ROM=desired_ROMs[self.name]*math.pi
+        self.desired_ROM_upper=desired_ROMs[self.name+'_upper']
+        self.desired_ROM_lower=desired_ROMs[self.name+'_lower']
+        self.desired_ROM=self.desired_ROM_upper-self.desired_ROM_lower
+
 
     def calibration(self, new_angle):
         '''
@@ -113,7 +116,7 @@ class Active_Margining:
 
     def map_to_margines(self,new_angle):
         normalized_angle = self.normalize(new_angle) # normalize between 0-1
-        mapped_angled=normalized_angle*self.desired_ROM - self.desired_ROM/2
+        mapped_angled=normalized_angle*self.desired_ROM + self.desired_ROM_lower
         return mapped_angled
 
     def visulize_margins(self):
@@ -136,7 +139,7 @@ class Active_Margining:
         cube.color.g = 1
         cube.color.b = 0
         cube.pose.position.x = self.low_margin+self.rom/2
-        cube.pose.position.y = 0
+        cube.pose.position.y = -1
         cube.pose.position.z = float(self.id)/10
         # vel.pose.orientation=Wrist_quat
         self.publisher_margin.publish(cube)
@@ -160,7 +163,7 @@ class Active_Margining:
         cube.color.g = 0
         cube.color.b = 0
         cube.pose.position.x = new_angle
-        cube.pose.position.y = 0
+        cube.pose.position.y = -1
         cube.pose.position.z = float(self.id)/10
         # vel.pose.orientation=Wrist_quat
         self.publisher_angles.publish(cube)
@@ -177,6 +180,28 @@ class Active_Margining:
         self.previous_angle=output_angle
         return output_angle
 
+
+
+def publish_to_3fingertool(index_mip_n_p, middle_mip_n_p, thumb_mip_n_p, index_pip_n_p, middle_pip_n_p, thumb_dip_n_p):
+    global pedal
+    joint_state = JointState()
+    joint_state.header.frame_id = "world"
+    joint_state.header.stamp = rospy.Time.now()
+
+    pub_joints = rospy.Publisher('/ss_3f_model/ss_tool/joint_states', JointState, queue_size=1)
+    joint_state.name = ["joint_index_MIP", "joint_middle_MIP", "joint_thumb_MIP",
+                        "joint_index_PIP", "joint_middle_PIP", "joint_thumb_DIP"]
+    # jaw: 0-1.57
+    # jaw_mimic_1 + jaw_mimic_2 should be equal to jaw
+    joint_state.position = [index_mip_n_p, middle_mip_n_p, thumb_mip_n_p,
+                            index_pip_n_p, middle_pip_n_p, thumb_dip_n_p]
+    joint_state.velocity = [0,0,0,0,0,0]
+    joint_state.effort = [0,0,0,0,0,0]
+
+    desired_pedal = rospy.get_param('/desired_pedal')
+    # if(pedal==desired_pedal):
+        # print('roll:{} ,pitch:{} ,yaw:{} ,jaw:{} '.format(elbow_roll,outer_wrist_pitch,outer_wrist_yaw,jaw))
+    pub_joints.publish(joint_state)
 
 
 def publish_to_davinci(elbow_roll,outer_wrist_pitch,outer_wrist_yaw,jaw):
@@ -207,19 +232,23 @@ def publish_to_davinci(elbow_roll,outer_wrist_pitch,outer_wrist_yaw,jaw):
 
 
 # Initializing active margining for each joint.
-elbow_roll_margining=Active_Margining('elbow_roll',1)
-wrist_ab_margining=Active_Margining('wrist_ab',2)   # this means wrist abduction, which is equal to yaw
-wrist_fl_margining=Active_Margining('wrist_fl',3)   # this means wrist flexsion-extension, which is equal to pitch
-index_fl_margining=Active_Margining('index_fl',4)   #this means index finger flexsion, which is equal to jaw open close
+index_mip_margining  = Active_Margining('index_mip',1)
+index_pip_margining  = Active_Margining('index_pip',2)
+middle_mip_margining = Active_Margining('middle_mip',3)
+middle_pip_margining  = Active_Margining('middle_pip',4)
+thumb_mip_margining  = Active_Margining('thumb_mip',5)
+thumb_dip_margining  = Active_Margining('thumb_dip',6)
 
 
 bCalibrationIsFinished=False
 
 def joints_array_callback(joints_array):
-    global elbow_roll_margining
-    global wrist_ab_margining
-    global wrist_fl_margining
-    global index_fl_margining
+    global index_mip_margining
+    global index_pip_margining
+    global middle_mip_margining
+    global middle_pip_margining
+    global thumb_mip_margining
+    global thumb_dip_margining
     global bCalibrationIsFinished
     # rospy.loginfo("HFT_joint_mapping")
     sensor_f_list = rospy.get_param('/sensor_f_list')
@@ -227,48 +256,68 @@ def joints_array_callback(joints_array):
     joints_list=joints_array.poses
 
     # now if you want for example Wrist joint, do as follows:
-    Elbow_euler = joints_list[sensor_f_list.index('Elbow')].position
-    Wrist_euler=joints_list[sensor_f_list.index('Wrist')].position
-    index_thumb_euler=joints_list[sensor_f_list.index('Index_MIP')].position
-    # print(Wrist_euler)
-    elbow_roll=Elbow_euler.y
-    wrist_fl=Wrist_euler.x      # this means wrist flexsion-extension, which is equal to pitch
-    wrist_ab=Wrist_euler.z      # this means wrist abduction, which is equal to yaw
-    index_fl=index_thumb_euler.z   #this means index finger flexsion, which is equal to jaw open close
+    index_mip_euler = joints_list[sensor_f_list.index('Index_MIP')].position    #must be same as in params
+    index_pip_euler = joints_list[sensor_f_list.index('Index_PIP')].position    #must be same as in params
+    middle_mip_euler = joints_list[sensor_f_list.index('Middle_MIP')].position    #must be same as in params
+    middle_pip_euler = joints_list[sensor_f_list.index('Middle_PIP')].position    #must be same as in params
+    thumb_mip_euler = joints_list[sensor_f_list.index('Thumb_MIP')].position    #must be same as in params
+    thumb_dip_euler = joints_list[sensor_f_list.index('Thumb_DIP')].position    #must be same as in params
 
+    index_mip=-index_mip_euler.x
+    index_pip=-index_pip_euler.x
+    middle_mip=-middle_mip_euler.x
+    middle_pip=-middle_pip_euler.x
+    thumb_mip=thumb_mip_euler.x
+    thumb_dip=thumb_dip_euler.x
+    # print(index_mip,middle_mip,thumb_mip)
+    publish_to_3fingertool(0,0,0,0,0,0)
     if bCalibrationIsFinished:
         #first we normalize the angles between 0~1
-        elbow_roll_n = elbow_roll_margining.map_to_margines(elbow_roll)
-        wrist_ab_n = wrist_ab_margining.map_to_margines(wrist_ab)
-        wrist_fl_n = wrist_fl_margining.map_to_margines(wrist_fl)
-        index_fl_n = index_fl_margining.map_to_margines(index_fl)
-        # //TODO:speed limit >> is better to go to davinci drive
-        elbow_roll_n_p = elbow_roll_margining.speed_limit(elbow_roll_n)
-        wrist_ab_n_p = wrist_ab_margining.speed_limit(wrist_ab_n)
-        wrist_fl_n_p = wrist_fl_margining.speed_limit(wrist_fl_n)
-        index_fl_n_p = index_fl_margining.speed_limit(index_fl_n)
+        index_mip_n =  index_mip_margining.map_to_margines(index_mip)
+        index_pip_n =  index_pip_margining.map_to_margines(index_pip)
+        middle_mip_n = middle_mip_margining.map_to_margines(middle_mip)
+        middle_pip_n = middle_pip_margining.map_to_margines(middle_pip)
+        thumb_mip_n =  thumb_mip_margining.map_to_margines(thumb_mip)
+        thumb_dip_n =  thumb_dip_margining.map_to_margines(thumb_dip)
 
+        # //TODO:speed limit >> is better to go to davinci drive
+
+        index_mip_n_p =  index_mip_margining.speed_limit(index_mip_n)
+        index_pip_n_p =  index_pip_margining.speed_limit(index_pip_n)
+        middle_mip_n_p = middle_mip_margining.speed_limit(middle_mip_n)
+        middle_pip_n_p = middle_pip_margining.speed_limit(middle_pip_n)
+        thumb_mip_n_p =  thumb_mip_margining.speed_limit(thumb_mip_n)
+        thumb_dip_n_p =  thumb_dip_margining.speed_limit(thumb_dip_n)
+
+        publish_to_3fingertool(index_mip_n_p, middle_mip_n_p, thumb_mip_n_p, index_pip_n_p, middle_pip_n_p, thumb_dip_n_p)
         # publish_to_davinci(elbow_roll, outer_wrist_pitch, outer_wrist_yaw, jaw)
-        publish_to_davinci(elbow_roll_n_p,  wrist_fl_n_p, wrist_ab_n_p, index_fl_n_p)
+        # publish_to_davinci(elbow_roll_n_p,  wrist_fl_n_p, wrist_ab_n_p, index_fl_n_p)
         # publish_to_davinci(elbow_roll_n_p * math.pi - math.pi / 2, -(wrist_ab_n_p * math.pi - math.pi / 2),
         #                    -(wrist_fl_n_p * math.pi - math.pi / 2), index_ab_n_p * math.pi / 2)
         # publish_to_davinci(wrist_ab_n*math.pi-math.pi/2,wrist_fl_n*math.pi-math.pi/2,index_ab_n*math.pi/2)
     else:
-        if elbow_roll_margining.calibration(elbow_roll) is True:
-            if wrist_ab_margining.calibration(wrist_ab) is True:
-                if wrist_fl_margining.calibration(wrist_fl) is True:
-                    if index_fl_margining.calibration(index_fl) is True:
-                        bCalibrationIsFinished = True
+        if index_mip_margining.calibration(index_mip) is True:
+            if index_pip_margining.calibration(index_pip) is True:
+                if middle_mip_margining.calibration(middle_mip) is True:
+                    if middle_pip_margining.calibration(middle_pip) is True:
+                        if thumb_mip_margining.calibration(thumb_mip) is True:
+                            if thumb_dip_margining.calibration(thumb_dip) is True:
+                                bCalibrationIsFinished = True
 
-    elbow_roll_margining.visulize_margins()
-    wrist_ab_margining.visulize_margins()
-    wrist_fl_margining.visulize_margins()
-    index_fl_margining.visulize_margins()
+    index_mip_margining.visulize_margins()
+    index_pip_margining.visulize_margins()
+    middle_mip_margining.visulize_margins()
+    middle_pip_margining.visulize_margins()
+    thumb_mip_margining.visulize_margins()
+    thumb_dip_margining.visulize_margins()
 
-    elbow_roll_margining.visualize_new_angle(elbow_roll)
-    wrist_ab_margining.visualize_new_angle(wrist_ab)
-    wrist_fl_margining.visualize_new_angle(wrist_fl)
-    index_fl_margining.visualize_new_angle(index_fl)
+    index_mip_margining.visualize_new_angle(index_mip)
+    index_pip_margining.visualize_new_angle(index_pip)
+    middle_mip_margining.visualize_new_angle(middle_mip)
+    middle_pip_margining.visualize_new_angle(middle_pip)
+    thumb_mip_margining.visualize_new_angle(thumb_mip)
+    thumb_dip_margining.visualize_new_angle(thumb_dip)
+
 
 
 pedal=Int32()
@@ -286,3 +335,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

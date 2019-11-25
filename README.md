@@ -25,7 +25,7 @@ Now you can run every desired node in a separate terminal
 # Functionality of each node
     
 the following picture shows all nodes and messages in this package
-![Alt text](rosgraph.png?raw=true "Title")
+![Alt text](figs/rosgraph.png?raw=true "Title")
 
 
 
@@ -254,13 +254,13 @@ to release:
 open rviz and load the HFT.rviz file.
 you will see the markers and joint limits during the calibration
 
-![Alt text](rviz.png?raw=true "Title")
+![Alt text](figs/rviz.png?raw=true "Title")
 
 ## 2. rqt plot options
 
 you can see all the joint angles and raw sensor values in rqt plot environment.
 
-![Alt text](rqt.png?raw=true "Title")
+![Alt text](figs/rqt.png?raw=true "Title")
 
 ## 3. runing the da vinci simulator
 you should first install the davinci research kit in another workspace, then
@@ -289,7 +289,7 @@ you can run the nodes separately (not using the launch file) and see which outpu
 
 Sensor placement is shown in the following figure:
 
-![Alt text](hand.jpg?raw=true "Title")
+![Alt text](figs/hand.jpg?raw=true "Title")
 
 Please make sure to validate the sensor positions after running the system.
 

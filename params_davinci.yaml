@@ -1,0 +1,120 @@
+#hand tracking algorithm parameters
+#authors:
+#Mohammad Fattahi Sani - fattahi.m91@gmail.com
+# license removed for brevity
+
+#this code is provided only for SMARTsurg's Internal refrence.
+#author's permission is required for any kind of partial or whole usage or distribution.
+#============ Sensor list name
+
+
+#/jason_stream_lables: ['S0','S1','S2','S3','S4','S5','S6','S7','S8','S9','S10','S11']
+#/sensor_n_list : ['Sensor0',  'Sensor1',   'Sensor2',   'Sensor3',     'Sensor4',   'Sensor5',   'Sensor6', 'Sensor7',     'Sensor8', 'Sensor9', 'Sensor10', 'Sensor11']
+#/sensor_f_list : ['Index_PIP','Index_DIP', 'Middle_DIP','Middle_PIP',  'Thumb_DIP','Thumb_MIP', 'Index_MIP', 'Middle_MIP', 'Elbow', 'Wrist', 'Thumb', 'Thumb_CMC']
+#/sensor_rf_list: ['Index_MIP','Index_PIP', 'Middle_PIP', 'Middle_MIP', 'Thumb_MIP', 'Thumb_CMC', 'Wrist',    'Wrist',      'world', 'Elbow', 'Wrist', 'Thumb']
+
+# IMPORTANT: The order should be from parent to child
+/jason_stream_lables: ['S3',          'S2',       'S1',             'S0']
+/sensor_rf_list:      ['world',     'Elbow',    'world',            'Thumb_MIP']
+/sensor_f_list :      ['Elbow',     'Wrist',    'Thumb_MIP',       'Index_MIP']
+
+
+#============ translations wrt world
+
+/hft_tfw/Elbow: [0.5,0.0,0.0]
+/hft_tfw/Wrist: [1,0.0,0.0]
+
+/hft_tfw/Thumb: [1.5,0.01,0.0]
+/hft_tfw/Thumb_CMC: [0,0.01,0.0]
+/hft_tfw/Thumb_MIP  : [1.5,0.0,0.0]
+/hft_tfw/Thumb_DIP  : [0.5,0.0,0.0]
+
+/hft_tfw/Middle_MIP  : [2,0.0,0.0]
+/hft_tfw/Middle_PIP : [0.25,0.0,0.0]
+/hft_tfw/Middle_DIP : [0.30,0.0,0.0]
+
+/hft_tfw/Index_MIP   : [2.0,-0.02,0.0]
+/hft_tfw/Index_PIP  : [1.1,-0.02,0.0]
+/hft_tfw/Index_DIP  : [1.3,-0.02,0.0]
+
+#============ translations wrt the previous frame
+
+/hft_tf/Elbow: [0.0,0.0,0.0]              #wrt world
+/hft_tf/Wrist: [0.0,0.1,0.0]            #wrt elbow
+
+
+/hft_tf/Thumb: [0.0,-0.01,0.0]          #wrt wrist
+/hft_tf/Thumb_CMC: [0,0.01,0.0]          #wrt thumb
+/hft_tf/Thumb_MIP  : [0.5,0.0,0.0]        #wrt Thumb_CMC
+/hft_tf/Thumb_DIP  : [0.5,0.0,0.0]        #wrt Thumb_MIP
+
+/hft_tf/Middle_MIP: [0.1,0.0,0.0]         #wrt wrist
+/hft_tf/Middle_PIP : [0.5,0.0,0.0]        #wrt Middle_MIP
+/hft_tf/Middle_DIP : [0.5,0.0,0.0]        #wrt Middle_PIP
+
+/hft_tf/Index_MIP:   [0.0,0.1,0.0]          #wrt wrist
+/hft_tf/Index_PIP  : [0.0,0.1,0.0]        #wrt Index_MIP
+/hft_tf/Index_DIP  : [0.0,0.1,0.0]        #wrt Index_PIP
+
+# Program parameters:
+
+#Calibration Parameters:
+
+#Calibration length defines how long calibration stage will last for each joint
+/CalLength/wrist_fl: 500
+/CalLength/wrist_ab: 500
+/CalLength/elbow_roll: 500
+/CalLength/index_fl: 500
+
+/simulation_param: 1
+
+/speed_limit: 0.07   #this value limits the speed of davinci movements.
+                      # if the jonit angle variation between two steps is bigger than this limit, it will be limited by this number.
+                      # if the joint angle variation if smaller than this limit, it wont have effect.
+
+#=====================desired rom for hand joints:=============
+
+/desired_ROMs/elbow_roll : 1
+/desired_ROMs/wrist_ab : 1
+/desired_ROMs/wrist_fl : 1
+/desired_ROMs/index_fl : 1
+
+
+
+#=================== da vinci drive parameters:: ===============
+
+# Joint limits in Quad Counts (QC).
+# in order to find these values, you have to run only exoeskeleton node and manually send the values to it. (refer to readme)
+# then you have to find what is the maximum quad count you can give to each joint? then minimum is same
+
+/joint_limits_QC/roll_max_QC: 50000
+/joint_limits_QC/roll_min_QC: -100000
+/joint_limits_QC/pitch_max_QC: 80000
+/joint_limits_QC/pitch_min_QC: -80000
+/joint_limits_QC/leftjaw_max_QC: 100000
+/joint_limits_QC/leftjaw_min_QC: -100000 #left jaw at each point should be equal or bigger than right jaw in order to avoid collision
+/joint_limits_QC/rightjaw_max_QC: 100000
+/joint_limits_QC/rightjaw_min_QC: -100000
+/joint_limits_QC/jaw_offset: 0.1 # this is usally a small value as it is in Radians.
+
+# Range of motion (ROM) for each joint of davinci in radians:
+
+/joint_ROM/roll_ROM: 1 # this number multiplied by pi will define range of motion for each joint
+/joint_ROM/pitch_ROM: 1 # for example 1 means 1pi = 3.14 radians. this means that from center, pitch can turn pi/2 to up and pi/2 to down
+/joint_ROM/leftjaw_ROM: 1
+/joint_ROM/rightjaw_ROM: 1
+
+
+
+
+#pedal ==============================================
+
+/desired_pedal: 3 # davinci tool will be actuated if this number is equal to the number published by arduino, for example now, it will be activated by pedal3
+#// 0: no pedal is activated
+#// 1: pedal 1 grab
+#// 2: pedal 2 camera
+#// 3: pedals 1&2
+#// 4: pedal 3 fix
+#// 5: pedals 1&3
+#// 6: pedals 2&3
+#// 7: all pedals
