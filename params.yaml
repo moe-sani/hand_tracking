@@ -14,15 +14,16 @@
 #/sensor_rf_list: ['Index_MIP','Index_PIP', 'Middle_PIP', 'Middle_MIP', 'Thumb_MIP', 'Thumb_CMC', 'Wrist',    'Wrist',      'world', 'Elbow', 'Wrist', 'Thumb']
 
 # IMPORTANT: The order should be from parent to child
-/jason_stream_lables: ['S3',          'S2',       'S1',             'S0']
-/sensor_rf_list:      ['world',     'Elbow',    'world',            'Thumb_MIP']
-/sensor_f_list :      ['Elbow',     'Wrist',    'Thumb_MIP',       'Index_MIP']
+/jason_stream_lables: ['S6',    'S5',        'S4',       'S3',          'S2',         'S1',             'S0']
+/sensor_rf_list:      ['world', 'Palm',     'Thumb_MIP', 'Palm',     'Index_MIP',    'Palm',            'Middle_MIP']
+/sensor_f_list :      ['Palm', 'Thumb_MIP', 'Thumb_DIP', 'Index_MIP', 'Index_PIP',   'Middle_MIP',       'Middle_PIP']
 
 
 #============ translations wrt world
 
 /hft_tfw/Elbow: [0.5,0.0,0.0]
 /hft_tfw/Wrist: [1,0.0,0.0]
+/hft_tfw/Palm: [1,0.0,0.0]
 
 /hft_tfw/Thumb: [1.5,0.01,0.0]
 /hft_tfw/Thumb_CMC: [0,0.01,0.0]
@@ -41,6 +42,7 @@
 
 /hft_tf/Elbow: [0.0,0.0,0.0]              #wrt world
 /hft_tf/Wrist: [0.0,0.1,0.0]            #wrt elbow
+/hft_tf/Palm: [0.0,0.1,0.0]            #wrt elbow
 
 
 /hft_tf/Thumb: [0.0,-0.01,0.0]          #wrt wrist
@@ -61,10 +63,12 @@
 #Calibration Parameters:
 
 #Calibration length defines how long calibration stage will last for each joint
-/CalLength/wrist_fl: 500
-/CalLength/wrist_ab: 500
-/CalLength/elbow_roll: 500
-/CalLength/index_fl: 500
+/CalLength/index_mip: 500
+/CalLength/index_pip: 500
+/CalLength/middle_mip: 500
+/CalLength/middle_pip: 500
+/CalLength/thumb_mip: 500
+/CalLength/thumb_dip: 500
 
 /simulation_param: 1
 
@@ -74,10 +78,24 @@
 
 #=====================desired rom for hand joints:=============
 
-/desired_ROMs/elbow_roll : 1
-/desired_ROMs/wrist_ab : 1
-/desired_ROMs/wrist_fl : 1
-/desired_ROMs/index_fl : 1
+/desired_ROMs/index_mip_upper:  0.39   # this number is in radians
+/desired_ROMs/index_mip_lower:  -1.04
+
+/desired_ROMs/middle_mip_upper: 0.39
+/desired_ROMs/middle_mip_lower: -1.04
+
+/desired_ROMs/thumb_mip_upper:  1.04
+/desired_ROMs/thumb_mip_lower:  -0.39
+
+
+/desired_ROMs/index_pip_upper:  1.04
+/desired_ROMs/index_pip_lower:  0
+
+/desired_ROMs/middle_pip_upper: 1.04
+/desired_ROMs/middle_pip_lower: 0
+
+/desired_ROMs/thumb_dip_upper:  0
+/desired_ROMs/thumb_dip_lower:  -1.04
 
 
 

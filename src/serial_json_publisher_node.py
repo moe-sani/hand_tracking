@@ -45,7 +45,7 @@ def extract_quaternion(data):
 
 def extract_pose_list(jdata,jason_stream_lables):
 	pose_list = []
-	for i in range(0, len(jdata)):
+	for i in range(0, len(jason_stream_lables)):
 		temp_pose = Pose()
 		temp_pose.orientation = extract_quaternion(jdata[jason_stream_lables[i]])
 		euler = Point()
@@ -68,7 +68,7 @@ def serial_parser():
 		# hello_str = "Serial_Publisher Node spinning... %s" % rospy.get_time()
 		# rospy.loginfo(hello_str)
 		line = ser.readline()  # read a '\n' terminated line
-		# print("raw data:{}".format(line))
+		print("raw data:{}".format(line))
 		if len(line)>13:
 			dataj = json.loads(line)
 			# print(dataj)
