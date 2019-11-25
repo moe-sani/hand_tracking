@@ -188,13 +188,15 @@ def publish_to_3fingertool(index_mip_n_p, middle_mip_n_p, thumb_mip_n_p, index_p
     joint_state.header.frame_id = "world"
     joint_state.header.stamp = rospy.Time.now()
 
-    pub_joints = rospy.Publisher('/ss_tool/joint_states', JointState, queue_size=1)
+    pub_joints = rospy.Publisher('/ss_3f_model/ss_tool/joint_states', JointState, queue_size=1)
     joint_state.name = ["joint_index_MIP", "joint_middle_MIP", "joint_thumb_MIP",
                         "joint_index_PIP", "joint_middle_PIP", "joint_thumb_DIP"]
     # jaw: 0-1.57
     # jaw_mimic_1 + jaw_mimic_2 should be equal to jaw
     joint_state.position = [index_mip_n_p, middle_mip_n_p, thumb_mip_n_p,
                             index_pip_n_p, middle_pip_n_p, thumb_dip_n_p]
+    joint_state.velocity = [0,0,0,0,0,0]
+    joint_state.effort = [0,0,0,0,0,0]
 
     desired_pedal = rospy.get_param('/desired_pedal')
     # if(pedal==desired_pedal):
@@ -268,7 +270,7 @@ def joints_array_callback(joints_array):
     thumb_mip=thumb_mip_euler.x
     thumb_dip=thumb_dip_euler.x
     # print(index_mip,middle_mip,thumb_mip)
-    # publish_to_3fingertool(0,0,0,0,0,0)
+    publish_to_3fingertool(0,0,0,0,0,0)
     if bCalibrationIsFinished:
         #first we normalize the angles between 0~1
         index_mip_n =  index_mip_margining.map_to_margines(index_mip)
