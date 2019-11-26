@@ -1,7 +1,14 @@
-# Hand Tracking
-author: Mohammad Fattahi Sani
-Smartsurg project
-This is a ROS package that recieves data from Hand Tracking Board and extracts joint angles, and finally maps them to the joints in davinci tool.
+# Hand Tracking for Smartsurg project
+* author: Mohammad Fattahi Sani
+* Email: fattahi.m91@gmail.com
+
+ This is a ROS package that recieves data from Hand Tracking Board and extracts joint angles, and finally maps them to the joints in davinci tool or 3 finger tool respectively.
+
+ This package contains the following branches: dev_exo_teleop
+ 
+ * 
+
+
 
 ## How to Run
 there are two ways to run this package, either using launch file or running nodes separately:
