@@ -2,22 +2,49 @@
 * author: Mohammad Fattahi Sani
 * Email: fattahi.m91@gmail.com
 
+----------
+
  This is a ROS package that recieves data from Hand Tracking Board and extracts joint angles, and finally maps them to the joints in davinci tool or 3 finger tool respectively.
 
- This package contains the following branches: dev_exo_teleop
- 
- * 
+ This package contains the following branches: 
+ * master: this is the branch for teleoperating the davinci and 3 finger tools
+ * dev_quat: this branch was used to collect data in surgical tests using 11 sensors and old board with multiplexr
+ * dev_old_shadow: this was the initial version to control the shadow hand. this is poorly written and it is not recommended to use.
+ * dev_exo_3f : this was used to develop 3f version (this is already meargerd)
 
+
+----------
+
+
+## Requirements:
+
+1. Ubuntu 16.04 LTS
+3. ROS kinetics
+2. you should have a data collection board (goto Hand_Tracking_Board repository for more info)
+3. for simulation, you need SSIEE package installed
+4. exoeskeleton package should be also installed (developed by saj to drive epos motors)
 
 
 ## How to Run
+This package includes two diffrent ways: one to teleoperate the davinci tool and the other to teleoperate the 3 finger tool.
 there are two ways to run this package, either using launch file or running nodes separately:
 
 
 ### launch file
+In order to control the davinci tool:
 
-    roslaunch handtracking HFT.launch
+    roslaunch handtracking HFT_davinci.launch
+    
+and  to control the 3finger tool:
 
+    roslaunch handtracking HFT_3f.launch
+    
+There is an option provided to see the behavior in simulation which is highly recommended. in order to run the package in simulation mode, simple add " sim:=true" to the end of each command line. for instance, to run davinci tool in simulation do:
+    
+    roslaunch handtracking HFT_davinci.launch sim:=true
+
+obviously you would need SSIEE package for silmulation.
+---
 ### manual running
 First we should run ROS core:
 
@@ -25,7 +52,9 @@ First we should run ROS core:
 
 then load parameters by navigate to the source folder and:
 
-    rosparam load params.yaml
+    rosparam load params_davinci.yaml
+    or
+    rosparam load params_3f.yaml
 
 Now you can run every desired node in a separate terminal
 
@@ -40,6 +69,8 @@ the following picture shows all nodes and messages in this package
 in another terminal, run:
 
     rosrun hand_tracking serial_json_publisher_node.py
+
+This node is same for both davinci and 3f tool
 
 ### Inputs:
 this node reads the serial port:
@@ -112,7 +143,9 @@ please note that values under 'position' are orientation in euler angles, and va
 ## 2. joint angles publisher
 
     rosrun hand_tracking HFT_joint_angle_publisher.py
-this node actually calculates the relative quaternion for each joint    
+this node actually calculates the relative quaternion for each joint.
+This joint is also same for both davinci tool and 3finger tool.
+    
 ### inputs:
 subscribes to /imu_pub_array
 ### outputs:
@@ -166,15 +199,17 @@ publishes relative quaternions to \joints_array
           z: 0.518125782185
           w: 0.719885873668
 
-the fact that which joint is calculated relative to which joint is given in the params.yaml file.
+the fact that which joint is calculated relative to which joint is given in the yaml file.
 
 ## 3. joint mapping node
+This part of the code is different for davinci and 3 finger tool
 
-    rosrun hand_tracking HFT_joint_mapping.py
+    rosrun hand_tracking HFT_joint_mapping_davinci.py
+    rosrun hand_tracking HFT_joint_mapping_3f.py
         
-this node is responsible for mapping the calculated joint angles to the davinci instrument
+this node is responsible for mapping the calculated joint angles to the instrument
 ### inputs: 
-\joints_array 
+\joints_array  comming from joint angle publisher
 
 ### outputs:
 
@@ -194,6 +229,7 @@ this node publishes /davinci_joint_states as JointState message type:
 
 
 ## 4. davinci driver
+This node is required only if you are going to actuate real tool. This part is only developed for davinci for now and needs to be developed for 3finger tool as well.
 this node subscribes to the joint states and publishes the message required by Epos driver node
     
     rosrun hand_tracking davinci_drive.py
@@ -269,20 +305,10 @@ you can see all the joint angles and raw sensor values in rqt plot environment.
 
 ![Alt text](figs/rqt.png?raw=true "Title")
 
-## 3. runing the da vinci simulator
-you should first install the davinci research kit in another workspace, then
-in new terminal, run:
+## 3. runing the simulator
 
-first source the bash file of the desired workspace for the terminal:
-
-    source ~/catkin_ws/devel_release/setup.bash
-
-then run the following command:
-
-    roslaunch dvrk_model arm_rviz_moe.launch arm:=PSM2
-
-dont forget that you should run the main launch file with sim:=true parameter.
-
+    roslaunch handtracking HFT_davinci.launch sim:=true
+    roslaunch handtracking HFT_3f.launch sim:=true
 
 
 # Notes:
@@ -293,10 +319,16 @@ you can run the nodes separately (not using the launch file) and see which outpu
 
 
 # sensor placement:
-
 Sensor placement is shown in the following figure:
+## Davinci:
 
-![Alt text](figs/hand.jpg?raw=true "Title")
+
+![Alt text](figs/hand.jpg?raw=true "Sensor placement for davinci teleop")
+
+## 3Finger tool
+
+![Alt text](figs/hand_3f.jpg?raw=true "Title")
+
 
 Please make sure to validate the sensor positions after running the system.
 
@@ -311,3 +343,4 @@ You can validate it as follows:
 
 * please make sure that correct sensors are attached to correct locations. make sure to verify this by moving the sensors individually and checking their values, either in RVIZ or in terminal or rqt.
 * by checking into rviz and moving each sensor, you will see that the corresponding frame is moving. each frame has name on it.
+
