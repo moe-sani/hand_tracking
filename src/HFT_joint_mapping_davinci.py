@@ -33,8 +33,10 @@ offset_buff=[]
 global listener
 change=0
 
-
-
+coupled = False
+pedal = Int32()
+desired_pedal = Int32()
+previous_pedal = 0
 
 #=====================================================================================
 
@@ -181,6 +183,9 @@ class Active_Margining:
 
 def publish_to_davinci(elbow_roll,outer_wrist_pitch,outer_wrist_yaw,jaw):
     global pedal
+    global desired_pedal
+    global previous_pedal
+    global coupled
     joint_state = JointState()
     joint_state.header.frame_id = "world"
     joint_state.header.stamp = rospy.Time.now()
@@ -199,11 +204,20 @@ def publish_to_davinci(elbow_roll,outer_wrist_pitch,outer_wrist_yaw,jaw):
         joint_state.name = ["roll","pitch","yaw","jaw"]
         joint_state.position=[elbow_roll,-outer_wrist_pitch,-outer_wrist_yaw,jaw]
 
-    desired_pedal = rospy.get_param('/desired_pedal')
-    pub_joints.publish(joint_state)
-    print('roll:{} ,pitch:{} ,yaw:{} ,jaw:{} '.format(elbow_roll,outer_wrist_pitch,outer_wrist_yaw,jaw))
-    if(pedal==desired_pedal):
-        pass
+    if pedal != desired_pedal and pedal != previous_pedal:
+        previous_pedal = pedal
+
+    if pedal == desired_pedal and pedal != previous_pedal:
+        previous_pedal = pedal
+        coupled = not coupled
+        if coupled:
+            print("Exoskeleton is activated")
+        else:
+            print("Exoskeleton is deactivated")
+    
+    if coupled:
+        print('roll:{} ,pitch:{} ,yaw:{} ,jaw:{} '.format(elbow_roll,outer_wrist_pitch,outer_wrist_yaw,jaw))
+        pub_joints.publish(joint_state)
 
 
 # Initializing active margining for each joint.
@@ -214,6 +228,7 @@ index_fl_margining=Active_Margining('index_fl',4)   #this means index finger fle
 
 
 bCalibrationIsFinished=False
+calib=0
 
 def joints_array_callback(joints_array):
     global elbow_roll_margining
@@ -221,6 +236,7 @@ def joints_array_callback(joints_array):
     global wrist_fl_margining
     global index_fl_margining
     global bCalibrationIsFinished
+    global calib
     # rospy.loginfo("HFT_joint_mapping")
     sensor_f_list = rospy.get_param('/sensor_f_list')
 
@@ -254,12 +270,23 @@ def joints_array_callback(joints_array):
         #                    -(wrist_fl_n_p * math.pi - math.pi / 2), index_ab_n_p * math.pi / 2)
         # publish_to_davinci(wrist_ab_n*math.pi-math.pi/2,wrist_fl_n*math.pi-math.pi/2,index_ab_n*math.pi/2)
     else:
-        publish_to_davinci(0, 0, 0, 0)
-        if elbow_roll_margining.calibration(elbow_roll) is True:
-            if wrist_ab_margining.calibration(wrist_ab) is True:
-                if wrist_fl_margining.calibration(wrist_fl) is True:
-                    if index_fl_margining.calibration(index_fl) is True:
-                        bCalibrationIsFinished = True
+		publish_to_davinci(0, 0, 0, 0)
+           if elbow_roll_margining.calibration(elbow_roll) is True:
+                if calib <1:
+                    raw_input("Press ENTER to start calibration for yaw...")
+                    calib=1
+                if wrist_ab_margining.calibration(wrist_ab) is True:
+                    if calib <2:
+                        raw_input("Press ENTER to start calibration for pitch...")
+                        calib=2
+                    if wrist_fl_margining.calibration(wrist_fl) is True:
+                        if calib <3:
+                            raw_input("Press ENTER to start calibration for opening/closing...")
+                            calib=3
+                        if index_fl_margining.calibration(index_fl) is True:
+                            print("Calibration finished. Press pedal to activate exoskeleton...")
+                            bCalibrationIsFinished = True
+
 
     elbow_roll_margining.visulize_margins()
     wrist_ab_margining.visulize_margins()
@@ -279,7 +306,10 @@ def pedal_read_callback(data):
 
 def main():
     global listener
+    global desired_pedal
     rospy.init_node('HFT_joint_mapping', anonymous=True)
+    raw_input("Press ENTER to start calibration for roll...")
+    desired_pedal = rospy.get_param('/desired_pedal')
     rospy.Subscriber("/joints_array", PoseArray, joints_array_callback, queue_size=10)
     rospy.Subscriber("/pedals", Int32, pedal_read_callback, queue_size=10)
     listener = tf.TransformListener()

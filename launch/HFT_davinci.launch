@@ -9,16 +9,19 @@
 
     <arg name="debug" default="false"/>
 
-    <rosparam file="$(find hand_tracking)/params_davinci.yaml"/>
+    <rosparam file="$(find hand_tracking)/config/params_davinci.yaml"/>
     <include file="$(find dvrk_model)/launch/davinci_rviz.launch" if="$(arg sim)"/>
 
 <!--    <node name="record" pkg="rosbag" type="record" args="record -a -o /home/user/sslt_logfiles/sslt" if="$(arg bag)" />-->
     <param name="simulation_param" value="$(arg sim)" type="bool" />
 
-    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find hand_tracking)/launch/HFT.rviz" />
+	<arg name="rviz" default="true"/>
 
+<node if="$(arg rviz)" type="rviz" name="exo_rviz" pkg="rviz" args="-d $(find hand_tracking)/rviz/HFT.rviz" />
 
-    <node name="serial_jason_publisher_node" type="serial_json_publisher_node.py" pkg="hand_tracking" output="screen" />
+    
+
+    <node name="serial_jason_publisher_node" type="serial_json_publisher_node.py" pkg="hand_tracking" args="0" output="screen" />
     <node name="HFT_joint_angle_publisher_node" type="HFT_joint_angle_publisher_node.py" pkg="hand_tracking" />
     <node name="HFT_joint_mapping_davinci" type="HFT_joint_mapping_davinci.py" pkg="hand_tracking" output="screen" />
     <node name="davinci_drive" type="davinci_drive.py" pkg="hand_tracking" output="screen" unless="$(arg sim)" />

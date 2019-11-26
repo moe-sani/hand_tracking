@@ -15,6 +15,7 @@ from geometry_msgs.msg import Pose
 from geometry_msgs.msg import PoseArray
 from std_msgs.msg import Float64
 import json
+import sys
 from tf.transformations import euler_from_quaternion, quaternion_from_euler
 
 
@@ -64,33 +65,39 @@ def serial_parser():
 	jason_stream_lables = rospy.get_param('/jason_stream_lables')
 	ser.close()
 	ser.open()
+	x=3
 	while not rospy.is_shutdown():
 		# hello_str = "Serial_Publisher Node spinning... %s" % rospy.get_time()
 		# rospy.loginfo(hello_str)
-		line = ser.readline()  # read a '\n' terminated line
-		print("raw data:{}".format(line))
-		if len(line)>13:
-			dataj = json.loads(line)
-			# print(dataj)
-			if 'SC'in dataj:
-				# print("SC:")
-				# print(dataj['SC'][0])
-				sc_data = Float64()
-				sc_data = float(dataj['SC'][0])
-				pub_SC.publish(sc_data)
+                try:
+			line = ser.readline()  # read a '\n' terminated line
+			#print("raw data:{}".format(line))
 
-			if 'S0' in dataj:
-				# print("data:",dataj)
-				imu_array=PoseArray()
-				imu_array.header.stamp = rospy.get_rostime()
-				imu_array.header.frame_id='/world'
-				imu_array.poses=extract_pose_list(dataj,jason_stream_lables)
-				pubArray.publish(imu_array)
-				# print("extract_pose_list(dataj):=======================================")
-				# print(extract_pose_list(dataj))
-			elif 'C0' in dataj:
-				print("calibration:", dataj)
-				pass
+			if len(line)>13:
+				dataj = json.loads(line)
+				# print(dataj)
+				if 'SC'in dataj:
+					# print("SC:")
+					# print(dataj['SC'][0])
+					sc_data = Float64()
+					sc_data = float(dataj['SC'][0])
+					pub_SC.publish(sc_data)
+
+				if 'S0' in dataj:
+					# print("data:",dataj)
+					imu_array=PoseArray()
+					imu_array.header.stamp = rospy.get_rostime()
+					imu_array.header.frame_id='/world'
+					imu_array.poses=extract_pose_list(dataj,jason_stream_lables)
+					pubArray.publish(imu_array)
+					# print("extract_pose_list(dataj):=======================================")
+					# print(extract_pose_list(dataj))
+				elif 'C0' in dataj:               
+					if int(sys.argv[1])>=1 :
+						print("calibration:", dataj, sys.argv[1],x)
+					pass
+                except:
+			pass
 		rate.sleep()
 
 if __name__ == '__main__':

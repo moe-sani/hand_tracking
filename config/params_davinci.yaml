@@ -61,12 +61,12 @@
 #Calibration Parameters:
 
 #Calibration length defines how long calibration stage will last for each joint
-/CalLength/wrist_fl: 500
-/CalLength/wrist_ab: 500
-/CalLength/elbow_roll: 500
-/CalLength/index_fl: 500
+/CalLength/wrist_fl: 700
+/CalLength/wrist_ab: 700
+/CalLength/elbow_roll: 700
+/CalLength/index_fl: 700
 
-/simulation_param: 1
+/simulation_param: 0
 
 /speed_limit: 0.07   #this value limits the speed of davinci movements.
                       # if the jonit angle variation between two steps is bigger than this limit, it will be limited by this number.
@@ -87,7 +87,7 @@
 # in order to find these values, you have to run only exoeskeleton node and manually send the values to it. (refer to readme)
 # then you have to find what is the maximum quad count you can give to each joint? then minimum is same
 
-/joint_limits_QC/roll_max_QC: 50000
+/joint_limits_QC/roll_max_QC: 100000
 /joint_limits_QC/roll_min_QC: -100000
 /joint_limits_QC/pitch_max_QC: 80000
 /joint_limits_QC/pitch_min_QC: -80000
@@ -95,7 +95,7 @@
 /joint_limits_QC/leftjaw_min_QC: -100000 #left jaw at each point should be equal or bigger than right jaw in order to avoid collision
 /joint_limits_QC/rightjaw_max_QC: 100000
 /joint_limits_QC/rightjaw_min_QC: -100000
-/joint_limits_QC/jaw_offset: 0.1 # this is usally a small value as it is in Radians.
+/joint_limits_QC/jaw_offset: 0.0 # this is usally a small value as it is in Radians.
 
 # Range of motion (ROM) for each joint of davinci in radians:
 
@@ -109,7 +109,7 @@
 
 #pedal ==============================================
 
-/desired_pedal: 3 # davinci tool will be actuated if this number is equal to the number published by arduino, for example now, it will be activated by pedal3
+/desired_pedal: 1 # davinci tool will be actuated if this number is equal to the number published by arduino, for example now, it will be activated by pedal3
 #// 0: no pedal is activated
 #// 1: pedal 1 grab
 #// 2: pedal 2 camera

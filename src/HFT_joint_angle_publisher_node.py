@@ -145,10 +145,13 @@ def imu_array_callback(imu_pose_array):
     imu_pose_list=imu_pose_array.poses
     raw_data_publisher(imu_pose_list)
     publish_all_wrt_world(imu_pose_list)
-    quat_list_cf, euler_list_cf = transform_all_to_cf(imu_pose_list)
-    rospy.loginfo('publishing joint angles ...')
-    joints_array_publisher(quat_list_cf,euler_list_cf)
-    joints_publisher(euler_list_cf)
+    try:
+        quat_list_cf, euler_list_cf = transform_all_to_cf(imu_pose_list)
+#    rospy.loginfo('publishing joint angles ...')
+        joints_array_publisher(quat_list_cf,euler_list_cf)
+        joints_publisher(euler_list_cf)
+    except:
+        pass
 
 def main():
     global listener

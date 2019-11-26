@@ -117,7 +117,7 @@ def davinci_joint_states_callback(joint_state):
     pub = rospy.Publisher('exoskeleton', Float64MultiArray, queue_size=10)
 
     dataPub = [da_roll, da_pitch, da_leftjaw, da_rightjaw, 1]  # data to publish to ROS
-    print(dataPub)
+    #print(dataPub)
     array_pub = Float64MultiArray(data=dataPub)  # Convert to std_msg type
     pub.publish(array_pub)  # Publish data to ROS
 
