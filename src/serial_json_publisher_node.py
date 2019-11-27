@@ -69,7 +69,7 @@ def serial_parser():
 	while not rospy.is_shutdown():
 		# hello_str = "Serial_Publisher Node spinning... %s" % rospy.get_time()
 		# rospy.loginfo(hello_str)
-                try:
+		try:
 			line = ser.readline()  # read a '\n' terminated line
 			#print("raw data:{}".format(line))
 
@@ -96,7 +96,7 @@ def serial_parser():
 					if int(sys.argv[1])>=1 :
 						print("calibration:", dataj, sys.argv[1],x)
 					pass
-                except:
+		except:
 			pass
 		rate.sleep()
 

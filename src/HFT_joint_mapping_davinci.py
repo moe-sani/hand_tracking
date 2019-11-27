@@ -27,7 +27,7 @@ from geometry_msgs.msg import Quaternion
 from visualization_msgs.msg import Marker
 import math
 import tf
-
+import sys
 
 offset_buff=[]
 global listener
@@ -199,25 +199,26 @@ def publish_to_davinci(elbow_roll,outer_wrist_pitch,outer_wrist_yaw,jaw):
         joint_state.position=[elbow_roll,outer_wrist_pitch,outer_wrist_yaw,jaw,jaw/2,jaw/2]
         joint_state.velocity=[0.0,0,0,0,0,0]
         joint_state.effort=[0.0,0,0,0,0,0]
+        pub_joints.publish(joint_state)
     else:
         pub_joints = rospy.Publisher('/davinci_joint_states', JointState, queue_size=1)
         joint_state.name = ["roll","pitch","yaw","jaw"]
         joint_state.position=[elbow_roll,-outer_wrist_pitch,-outer_wrist_yaw,jaw]
 
-    if pedal != desired_pedal and pedal != previous_pedal:
-        previous_pedal = pedal
+        if pedal != desired_pedal and pedal != previous_pedal:
+            previous_pedal = pedal
 
-    if pedal == desired_pedal and pedal != previous_pedal:
-        previous_pedal = pedal
-        coupled = not coupled
+        if pedal == desired_pedal and pedal != previous_pedal:
+            previous_pedal = pedal
+            coupled = not coupled
+            if coupled:
+                print("Exoskeleton is activated")
+            else:
+                print("Exoskeleton is deactivated")
+
         if coupled:
-            print("Exoskeleton is activated")
-        else:
-            print("Exoskeleton is deactivated")
-    
-    if coupled:
-        print('roll:{} ,pitch:{} ,yaw:{} ,jaw:{} '.format(elbow_roll,outer_wrist_pitch,outer_wrist_yaw,jaw))
-        pub_joints.publish(joint_state)
+            print('roll:{} ,pitch:{} ,yaw:{} ,jaw:{} '.format(elbow_roll,outer_wrist_pitch,outer_wrist_yaw,jaw))
+            pub_joints.publish(joint_state)
 
 
 # Initializing active margining for each joint.
@@ -270,22 +271,22 @@ def joints_array_callback(joints_array):
         #                    -(wrist_fl_n_p * math.pi - math.pi / 2), index_ab_n_p * math.pi / 2)
         # publish_to_davinci(wrist_ab_n*math.pi-math.pi/2,wrist_fl_n*math.pi-math.pi/2,index_ab_n*math.pi/2)
     else:
-		publish_to_davinci(0, 0, 0, 0)
-           if elbow_roll_margining.calibration(elbow_roll) is True:
-                if calib <1:
-                    raw_input("Press ENTER to start calibration for yaw...")
-                    calib=1
-                if wrist_ab_margining.calibration(wrist_ab) is True:
-                    if calib <2:
-                        raw_input("Press ENTER to start calibration for pitch...")
-                        calib=2
-                    if wrist_fl_margining.calibration(wrist_fl) is True:
-                        if calib <3:
-                            raw_input("Press ENTER to start calibration for opening/closing...")
-                            calib=3
-                        if index_fl_margining.calibration(index_fl) is True:
-                            print("Calibration finished. Press pedal to activate exoskeleton...")
-                            bCalibrationIsFinished = True
+        publish_to_davinci(0, 0, 0, 0)
+        if elbow_roll_margining.calibration(elbow_roll) is True:
+            if calib <1:
+                raw_input("Press ENTER to start calibration for yaw...")
+                calib=1
+            if wrist_ab_margining.calibration(wrist_ab) is True:
+                if calib <2:
+                    raw_input("Press ENTER to start calibration for pitch...")
+                    calib=2
+                if wrist_fl_margining.calibration(wrist_fl) is True:
+                    if calib <3:
+                        raw_input("Press ENTER to start calibration for opening/closing...")
+                        calib=3
+                    if index_fl_margining.calibration(index_fl) is True:
+                        print("Calibration finished. Press pedal to activate exoskeleton...")
+                        bCalibrationIsFinished = True
 
 
     elbow_roll_margining.visulize_margins()
@@ -299,7 +300,7 @@ def joints_array_callback(joints_array):
     index_fl_margining.visualize_new_angle(index_fl)
 
 
-pedal=Int32()
+
 def pedal_read_callback(data):
     global pedal
     pedal=data.data
